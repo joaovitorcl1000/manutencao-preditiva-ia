@@ -1,7 +1,7 @@
 """
 Pipeline de IA para Análise Preditiva na Indústria 4.0
 Fase 1: Análise Exploratória de Dados (EDA) - Inspeção dos Dados, Gráficos exploratórios, Interpretação dos resultados
-Fase 2: Limpeza e Tratamento de Dados (Data Prep) - Limpeza e Estruturação de Dados
+Fase 2: Limpeza e Tratamento de Dados (Data Prep) - Limpeza e Estruturação de Dados, Tratamento de Dados Ausentes, Diagnóstico de Outliers
 """
 
 import os
@@ -257,6 +257,37 @@ def imputar_dados(df_limpo):
 
     return df, relatorio
 
+# --------------------------------------------------------------------------
+# 3. Diagnóstico de Outliers (Visualização via Boxplots)
+# --------------------------------------------------------------------------
+def gerar_boxplots(df):
+    """Fase 2 (Tópico 3) - Gera boxplots para identificar outliers nas variáveis explicativas."""
+    print("[INFO] Gerando diagnóstico visual de outliers (Boxplots)...")
+    
+    path_graphs = "../outputs/plots"
+    colunas_sensores = [
+        'temperatura_ar_k', 'temperatura_processo_k', 
+        'velocidade_rotacao_rpm', 'torque_nm', 'desgaste_ferramenta_min'
+    ]
+    
+    # Criar subplots para os 5 sensores
+    fig, axes = plt.subplots(1, 5, figsize=(20, 6))
+    sns.set_theme(style="whitegrid")
+    
+    for i, col in enumerate(colunas_sensores):
+        sns.boxplot(y=df[col], ax=axes[i], color="#FF9800")
+        axes[i].set_title(col.replace('_', ' ').title())
+        axes[i].set_ylabel("")
+        
+    plt.suptitle("Diagnóstico de Outliers: Variáveis Explicativas (Sensores)", fontsize=16, fontweight='bold')
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+    
+    caminho_bp = os.path.join(path_graphs, "prep_diagnostico_outliers.png")
+    plt.savefig(caminho_bp, dpi=150)
+    plt.close()
+    
+    print(f"  [OK] Gráfico de Boxplots salvo em: {caminho_bp}")
+
 # ==============================================================================
 # MAIN
 # ==============================================================================
@@ -285,6 +316,9 @@ def main():
 
         # Tratamento de Dados Ausentes
         df_imputado, relatorio_imputacao = imputar_dados(df_limpo)
+
+        # Diagnóstico de Outliers
+        gerar_boxplots(df_imputado)
         
     except FileNotFoundError:
         print(f"[ERRO] O arquivo não foi encontrado.")

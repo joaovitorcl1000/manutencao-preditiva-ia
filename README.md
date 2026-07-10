@@ -46,7 +46,10 @@ pip install -r requirements.txt
     * **Torque (Nm):** Utilizou-se a **Média**, visto que a variável exibe uma distribuição Gaussiana (Normal) simétrica, onde a média representa o valor central com maior precisão estatística.
     * **Velocidade (RPM) e Temperaturas (Ar/Processo):** Utilizou-se a **Mediana**, devido à presença de assimetria e valores extremos (*outliers*) identificados nos histogramas. A mediana assegura robustez, evitando que valores discrepantes distorçam o ponto central da distribuição.
 
-* Gere gráficos do tipo boxplot para identificar a presença de outliers nas variáveis explicativas.
+* **Diagnóstico de Outliers:** Foram gerados gráficos do tipo *Boxplot* para as variáveis explicativas, revelando que, enquanto *Temperaturas* e *Desgaste* apresentam distribuições estáveis, as variáveis de *Velocidade (RPM)* e *Torque* concentram *outliers* significativos acima dos limites superiores. 
+
+    * Essa distribuição não indica erros de medição, mas sim estados operacionais críticos: a presença desses valores extremos é a "assinatura" física de sobrecargas mecânicas e instabilidades, sendo essencial manter estes dados preservados para que o modelo aprenda a identificar padrões de falha.
+    * O padrão observado nos *boxplots* confirma que a variabilidade dos sensores de *Torque* e *RPM* não é ruído aleatório, mas sim um reflexo da dinâmica operacional do equipamento em condições de esforço. Conclui-se, portanto, que a retenção dos *outliers* é indispensável para o treinamento de um modelo preditivo eficaz, visto que eles representam os limites físicos de operação onde a falha mecânica torna-se estatisticamente provável.
 
 
 # Execução e Diagnóstico Local (Console Output)
