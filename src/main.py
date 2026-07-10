@@ -3,7 +3,7 @@ Pipeline de IA para Análise Preditiva na Indústria 4.0
 Fase 1: Análise Exploratória de Dados (EDA) - Inspeção dos Dados, Gráficos exploratórios, Interpretação dos resultados
 Fase 2: Limpeza e Tratamento de Dados (Data Prep) - Limpeza e Estruturação de Dados, Tratamento de Dados Ausentes, Diagnóstico de Outliers
 Fase 3: Feature Engineering - Criar Features
-Fase 4:  Divisão e Balanceamento dos Dados - Variáveis Preditoras e Alvo
+Fase 4:  Divisão e Balanceamento dos Dados - Variáveis Preditoras e Alvo, Pareto
 """
 
 import os
@@ -12,6 +12,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from pathlib import Path
+from sklearn.model_selection import train_test_split
 
 # ==============================================================================
 # FASE 1: ANÁLISE EXPLORATÓRIA DE DADOS (EDA)
@@ -349,6 +350,23 @@ def dividir_dados(df_enriquecido):
     
     return X, y
 
+# --------------------------------------------------------------------------
+# 2. Pareto
+# --------------------------------------------------------------------------
+
+def dividir_treino_teste(X, y):
+    """Fase 4 - Divisão de dados em treino e teste com estratificação."""
+    print("[INFO] Iniciando divisão Treino/Teste (80/20)...")
+    
+    # Stratify=y garante que a proporção de falhas no treino seja igual à do teste
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.20, random_state=42, stratify=y
+    )
+    
+    print(f"[INFO] Shapes -> Treino: {X_train.shape}, Teste: {X_test.shape}")
+    
+    return X_train, X_test, y_train, y_test
+
 # ==============================================================================
 # MAIN
 # ==============================================================================
@@ -391,7 +409,10 @@ def main():
         #---------------------------------------------------------
         
         # Variáveis Preditoras e Alvo
-        dividir_dados(df_enriquecido)
+        X, y = dividir_dados(df_enriquecido)
+        
+        # Divisão em Treino e Teste
+        X_train, X_test, y_train, y_test = dividir_treino_teste(X, y)
 
         
     except FileNotFoundError:
