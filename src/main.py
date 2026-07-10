@@ -9,6 +9,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+from pathlib import Path
 
 # ==============================================================================
 # FASE 1: ANÁLISE EXPLORATÓRIA DE DADOS (EDA)
@@ -227,6 +228,8 @@ def limpar_dados(df_raw):
 def imputar_dados(df_limpo):
     """Fase 2 (Tópico 2) - Identifica e imputa valores ausentes com justificativa técnica."""
     print("[INFO] Iniciando imputação de dados ausentes...")
+
+    OUTPUT_DIR = Path("../outputs")
     
     df = df_limpo.copy()
     nulos_antes = df.isnull().sum()
@@ -254,6 +257,12 @@ def imputar_dados(df_limpo):
     print(f"  Valores ausentes tratados: {relatorio['total_nulos_imputados']}")
     print("  Estratégia: Torque (Média), Demais (Mediana)")
     print("========================================\n")
+
+    caminho_csv = OUTPUT_DIR / "dados_limpos.csv"
+    
+    # Salvando o dataframe limpo
+    df.to_csv(caminho_csv, index=False)
+    print(f"[INFO] Dados limpos salvos com sucesso em: {caminho_csv}")
 
     return df, relatorio
 
