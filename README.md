@@ -58,7 +58,7 @@ pip install -r requirements.txt
         * `flag_sobrecarga_termica`: Variável binária baseada na mediana da temperatura.
     * **Tratamento:** As operações foram realizadas após a etapa de imputação de nulos da Fase 2, garantindo que nenhum valor `NaN` propagasse erro na divisão matemática.
     * **Output:** Dados enriquecidos salvos em `outputs/dados_enriquecidos.csv`.
-
+    * **Potência Estimada (`potencia_estimada`):** Calculada pela multiplicação entre `velocidade_rotacao_rpm` e `torque_nm`. Representa a potência mecânica do sistema. Variações anômalas nesta métrica, mesmo com RPM constante, indicam falhas iminentes no esforço do motor ou resistência excessiva no corte.
 
 
 # Execução e Diagnóstico Local (Console Output)

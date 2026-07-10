@@ -319,7 +319,9 @@ def criar_features(df_imputado):
     # Criar uma flag de sobrecarga térmica (Booleana convertida para int)
     df["flag_sobrecarga_termica"] = (df["temperatura_processo_k"] > df["temperatura_processo_k"].median()).astype(int)
 
-    print("[INFO] Novas features 'taxa_desgaste_processo' e 'flag_sobrecarga_termica' criadas.")
+    df["potencia_estimada"] = df["velocidade_rotacao_rpm"] * df["torque_nm"]
+
+    print("[INFO] Novas features 'taxa_desgaste_processo' 'flag_sobrecarga_termica' e 'potencia_estimada' criadas.")
     
     # Salvando a nova versão
     caminho_csv = "../outputs/dados_enriquecidos.csv"
