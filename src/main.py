@@ -3,6 +3,7 @@ Pipeline de IA para Análise Preditiva na Indústria 4.0
 Fase 1: Análise Exploratória de Dados (EDA) - Inspeção dos Dados, Gráficos exploratórios, Interpretação dos resultados
 Fase 2: Limpeza e Tratamento de Dados (Data Prep) - Limpeza e Estruturação de Dados, Tratamento de Dados Ausentes, Diagnóstico de Outliers
 Fase 3: Feature Engineering - Criar Features
+Fase 4:  Divisão e Balanceamento dos Dados - Variáveis Preditoras e Alvo
 """
 
 import os
@@ -261,7 +262,6 @@ def imputar_dados(df_limpo):
 
     caminho_csv = OUTPUT_DIR / "dados_limpos.csv"
     
-    # Salvando o dataframe limpo
     df.to_csv(caminho_csv, index=False)
     print(f"[INFO] Dados limpos salvos com sucesso em: {caminho_csv}")
 
@@ -280,7 +280,6 @@ def gerar_boxplots(df):
         'velocidade_rotacao_rpm', 'torque_nm', 'desgaste_ferramenta_min'
     ]
     
-    # Criar subplots para os 5 sensores
     fig, axes = plt.subplots(1, 5, figsize=(20, 6))
     sns.set_theme(style="whitegrid")
     
@@ -312,22 +311,43 @@ def criar_features(df_imputado):
     
     df = df_imputado.copy()
     
-    # Exemplo: Criar métrica de intensidade de desgaste por temperatura de processo
-    # Adicionamos uma pequena constante para evitar divisão por zero (já tratamos nulos antes!)
     df["taxa_desgaste_processo"] = df["desgaste_ferramenta_min"] / (df["temperatura_processo_k"] + 1e-6)
     
-    # Criar uma flag de sobrecarga térmica (Booleana convertida para int)
     df["flag_sobrecarga_termica"] = (df["temperatura_processo_k"] > df["temperatura_processo_k"].median()).astype(int)
 
     df["potencia_estimada"] = df["velocidade_rotacao_rpm"] * df["torque_nm"]
 
     print("[INFO] Novas features 'taxa_desgaste_processo' 'flag_sobrecarga_termica' e 'potencia_estimada' criadas.")
     
-    # Salvando a nova versão
     caminho_csv = "../outputs/dados_enriquecidos.csv"
     df.to_csv(caminho_csv, index=False)
     
     return df
+
+# ==============================================================================
+# FASE 4: DIVISÃO E BALANCEAMENTO DE DADOS  
+# ==============================================================================
+
+# --------------------------------------------------------------------------
+# 1. Variáveis Preditoras e Alvo
+# --------------------------------------------------------------------------
+def dividir_dados(df_enriquecido):
+    """Fase 4 - Separação das variáveis preditoras (X) e alvo (y)."""
+    print("[INFO] Iniciando Fase 4: Divisão dos dados...")
+    
+    # Definindo a variável alvo (Target)
+    target = 'falha_maquina'
+    
+    # Excluindo o alvo e colunas não numéricas que não agregam ao modelo 
+    X = df_enriquecido.drop(columns=[target, 'udi', 'id_produto', 'tipo'], errors='ignore')
+    
+    # Definindo o vetor alvo
+    y = df_enriquecido[target]
+    
+    print(f"[INFO] Variáveis preditoras (X) shape: {X.shape}")
+    print(f"[INFO] Variável alvo (y) shape: {y.shape}")
+    
+    return X, y
 
 # ==============================================================================
 # MAIN
@@ -365,6 +385,14 @@ def main():
         #---------------------------------------------------------
         # Criando Features
         df_enriquecido = criar_features(df_imputado)
+
+        #---------------------------------------------------------
+        # Fase 4: Divisão e Balanceamento dos Dados
+        #---------------------------------------------------------
+        
+        # Variáveis Preditoras e Alvo
+        dividir_dados(df_enriquecido)
+
         
     except FileNotFoundError:
         print(f"[ERRO] O arquivo não foi encontrado.")
