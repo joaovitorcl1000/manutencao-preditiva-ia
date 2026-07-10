@@ -41,7 +41,10 @@ pip install -r requirements.txt
     * **Consistência de Tipos (*Type Casting*):** Força a tipagem correta da variável `desgaste_ferramenta_min` para o formato inteiro (`int`), prevenindo erros de alocação de memória e garantindo precisão numérica.
     * **Auditoria de Pipeline:** A função gera um relatório transacional no console que rastreia quantitativamente cada linha alterada ou removida, assegurando transparência no tratamento inicial da base de 10.000 registros.
 
-* Identifique dados ausentes e aplique a imputação por Média ou Mediana, justificando textualmente a escolha com base na distribuição dos dados.
+* **Tratamento de Dados Ausentes:** Foi realizada a identificação de valores nulos no conjunto de dados e aplicada a imputação utilizando métricas de tendência central, com a estratégia selecionada conforme a distribuição de cada variável observada na Análise Exploratória (Fase 1):
+
+    * **Torque (Nm):** Utilizou-se a **Média**, visto que a variável exibe uma distribuição Gaussiana (Normal) simétrica, onde a média representa o valor central com maior precisão estatística.
+    * **Velocidade (RPM) e Temperaturas (Ar/Processo):** Utilizou-se a **Mediana**, devido à presença de assimetria e valores extremos (*outliers*) identificados nos histogramas. A mediana assegura robustez, evitando que valores discrepantes distorçam o ponto central da distribuição.
 
 * Gere gráficos do tipo boxplot para identificar a presença de outliers nas variáveis explicativas.
 

@@ -204,7 +204,7 @@ def limpar_dados(df_raw):
 
     relatorio["anomalias_fisicas_removidas"] = n_antes_inv - len(df)
 
-    # 4. Garantir tipos de dados numéricos corretos
+    # 4. Garantimos tipos de dados numéricos corretos
     df["desgaste_ferramenta_min"] = df["desgaste_ferramenta_min"].astype(int)
 
     # Métricas Finais do Relatório
@@ -217,6 +217,42 @@ def limpar_dados(df_raw):
     for chave, valor in relatorio.items():
         nome_formatado = chave.replace("_", " ").title()
         print(f"  {nome_formatado}: {valor}")
+    print("========================================\n")
+
+    return df, relatorio
+
+# --------------------------------------------------------------------------
+# 2. Tratamento de Dados Ausentes (Imputação por Média/Mediana)
+# --------------------------------------------------------------------------
+def imputar_dados(df_limpo):
+    """Fase 2 (Tópico 2) - Identifica e imputa valores ausentes com justificativa técnica."""
+    print("[INFO] Iniciando imputação de dados ausentes...")
+    
+    df = df_limpo.copy()
+    nulos_antes = df.isnull().sum()
+    relatorio = {}
+
+    # - Torque: Média (Normal)
+    # - RPM e Temperaturas: Mediana (Assimetria/Robustez)
+    
+    colunas_media = ["torque_nm"]
+    colunas_mediana = ["velocidade_rotacao_rpm", "temperatura_ar_k", "temperatura_processo_k"]
+
+    for col in colunas_media:
+        if df[col].isnull().sum() > 0:
+            df[col] = df[col].fillna(df[col].mean())
+            
+    for col in colunas_mediana:
+        if df[col].isnull().sum() > 0:
+            df[col] = df[col].fillna(df[col].median())
+
+    # Auditoria
+    nulos_depois = df.isnull().sum().sum()
+    relatorio["total_nulos_imputados"] = int(nulos_antes.sum() - nulos_depois)
+    
+    print("\n=== RELATÓRIO DE IMPUTAÇÃO (TÓPICO 2) ===")
+    print(f"  Valores ausentes tratados: {relatorio['total_nulos_imputados']}")
+    print("  Estratégia: Torque (Média), Demais (Mediana)")
     print("========================================\n")
 
     return df, relatorio
@@ -234,18 +270,21 @@ def main():
         #---------------------------------------------------------
         # Fase 1: Análise Exploratória (EDA)
         #---------------------------------------------------------
-        # Fase 1: Análise Exploratória (EDA)/Inspeção dos dados
+        # Inspeção dos dados
         inspecionar_dados(df_raw)
 
-        # Fase 1: Análise Exploratória (EDA)/Gráficos Exploratórios
+        # Gráficos Exploratórios
         gerar_graficos(df_raw)
 
         #---------------------------------------------------------
         # Fase 2: Limpeza e Tratamento de Dados (Data Prep)
         #---------------------------------------------------------
 
-        # Fase 2: Limpeza e Tratamento de Dados (Data Prep)/Limpeza e Estruturação de Dados
+        # Limpeza e Estruturação de Dados
         df_limpo, relatorio_limpeza = limpar_dados(df_raw)
+
+        # Tratamento de Dados Ausentes
+        df_imputado, relatorio_imputacao = imputar_dados(df_limpo)
         
     except FileNotFoundError:
         print(f"[ERRO] O arquivo não foi encontrado.")
