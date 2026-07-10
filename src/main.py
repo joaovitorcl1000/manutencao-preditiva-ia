@@ -3,7 +3,7 @@ Pipeline de IA para Análise Preditiva na Indústria 4.0
 Fase 1: Análise Exploratória de Dados (EDA) - Inspeção dos Dados, Gráficos exploratórios, Interpretação dos resultados
 Fase 2: Limpeza e Tratamento de Dados (Data Prep) - Limpeza e Estruturação de Dados, Tratamento de Dados Ausentes, Diagnóstico de Outliers
 Fase 3: Feature Engineering - Criar Features
-Fase 4:  Divisão e Balanceamento dos Dados - Variáveis Preditoras e Alvo, Pareto
+Fase 4:  Divisão e Balanceamento dos Dados - Variáveis Preditoras e Alvo, Pareto, Reamostragem
 """
 
 import os
@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from pathlib import Path
 from sklearn.model_selection import train_test_split
+from imblearn.over_sampling import SMOTE
 
 # ==============================================================================
 # FASE 1: ANÁLISE EXPLORATÓRIA DE DADOS (EDA)
@@ -367,6 +368,24 @@ def dividir_treino_teste(X, y):
     
     return X_train, X_test, y_train, y_test
 
+# --------------------------------------------------------------------------
+# 3. Reamostragem
+# --------------------------------------------------------------------------
+
+def balancear_dados(X_train, y_train):
+    """Fase 4 (Tópico 2) - Aplica SMOTE para balancear a classe minoritária."""
+    print("[INFO] Iniciando balanceamento de dados com SMOTE...")
+    
+    # Inicializa o SMOTE
+    smote = SMOTE(random_state=42)
+    
+    # Aplica apenas nos dados de treino
+    X_train_res, y_train_res = smote.fit_resample(X_train, y_train)
+    
+    print(f"[INFO] Shapes após SMOTE -> Treino: {X_train_res.shape}, Alvo: {y_train_res.shape}")
+    
+    return X_train_res, y_train_res
+
 # ==============================================================================
 # MAIN
 # ==============================================================================
@@ -414,6 +433,8 @@ def main():
         # Divisão em Treino e Teste
         X_train, X_test, y_train, y_test = dividir_treino_teste(X, y)
 
+        # Reamostragem
+        X_train_res, y_train_res = balancear_dados(X_train, y_train)
         
     except FileNotFoundError:
         print(f"[ERRO] O arquivo não foi encontrado.")
