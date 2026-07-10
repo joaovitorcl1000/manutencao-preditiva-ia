@@ -1,0 +1,15 @@
+# Ignorar a base de dados pesada para não poluir o GitHub
+data/manutencao_preditiva.csv
+
+# Ignorar os gráficos gerados automaticamente localmente na máquina
+outputs/graficos/*.png
+
+# Ignorar arquivos temporários do Word/Office e o binário bruto
+*.docx
+.~lock.*.docx
+
+# Ignorar pastas de ambiente virtual do Python (caso crie uma local)
+.venv/
+venv/
+__pycache__/
+.ipynb_checkpoints/
