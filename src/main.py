@@ -1,6 +1,6 @@
 """
 Pipeline de IA para Análise Preditiva na Indústria 4.0
-Fase 1: Análise Exploratória de Dados (EDA) - Inspeção dos Dados, Gráficos exploratórios
+Fase 1: Análise Exploratória de Dados (EDA) - Inspeção dos Dados, Gráficos exploratórios, Interpretação dos resultados
 """
 
 import os
