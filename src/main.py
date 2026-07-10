@@ -1,14 +1,21 @@
 """
 Pipeline de IA para Análise Preditiva na Indústria 4.0
-Fase 1: Análise Exploratória de Dados (EDA) - Inspeção dos Dados
+Fase 1: Análise Exploratória de Dados (EDA) - Inspeção dos Dados, Gráficos exploratórios
 """
 
 import os
 import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 # ==============================================================================
 # FASE 1: ANÁLISE EXPLORATÓRIA DE DADOS (EDA)
 # ==============================================================================
+
+#-------------------------------------------------------------------------------
+# Inspeção dos Dados
+#-------------------------------------------------------------------------------
 
 def inspecionar_dados(df):
     """
@@ -40,6 +47,128 @@ def inspecionar_dados(df):
     print(df.describe().to_string())
     print("=" * 60 + "\n")
 
+#-------------------------------------------------------------------------------
+# Gráficos exploratórios
+#-------------------------------------------------------------------------------
+
+def gerar_graficos(df):
+    """
+    Fase 1 (Tópico 2) - Gera e salva os 3 gráficos obrigatórios do edital 
+    mais um 4º gráfico focado em diagnóstico de falhas.
+    """
+    print("\n" + "=" * 60)
+    print("=== FASE 1: GERAÇÃO DOS GRÁFICOS EXPLORATÓRIOS ===")
+    print("=" * 60)
+
+    # Caminho para salvar os gráficos
+    path_graphs = "../outputs/plots"
+    
+    # Configurações globais de estilo
+    sns.set_theme(style="whitegrid")
+
+    # Listamos os 5 sensores operacionais. Deixamos de fora os IDs e as falhas específicas, cumprindo a primeira restrição do Departamento de Engenharia
+    colunas_sensores = [
+        'temperatura_ar_k', 'temperatura_processo_k', 
+        'velocidade_rotacao_rpm', 'torque_nm', 'desgaste_ferramenta_min'
+    ]
+
+    # --------------------------------------------------------------------------
+    # GRÁFICO 1: Histograma de Distribuição das Variáveis
+    # --------------------------------------------------------------------------
+    """
+    Este gráfico mostra a distribuição de cada sensor. 
+    Como as escalas são muito diferentes — RPM está na casa dos milhares e Torque nas dezenas —, 
+    isso mostra que o KNN vai precisar de um escalonamento de dados mais para frente   
+    """
+
+    print("[GERANDO GRÁFICO] Plotando histogramas das variáveis dos sensores...")
+    fig, axes = plt.subplots(2, 3, figsize=(16, 10))
+    axes = axes.flatten()
+    
+    for i, col in enumerate(colunas_sensores):
+        sns.histplot(data=df, x=col, kde=True, ax=axes[i], color="#2196F3")
+        axes[i].set_title(f"Distribuição: {col.replace('_', ' ').title()}")
+        axes[i].set_xlabel("")
+        axes[i].set_ylabel("Frequência")
+
+    fig.delaxes(axes[-1])
+    plt.suptitle("Distribuição Estatística das Variáveis dos Sensores Industriais", fontsize=14, fontweight='bold')
+    plt.tight_layout()
+    
+    caminho_g1 = os.path.join(path_graphs, "eda_distribuicao_sensores.png")
+    plt.savefig(caminho_g1, dpi=150)
+    plt.close()
+    print(f"  [OK] Gráfico 1 salvo com sucesso em: {caminho_g1}")
+
+    # --------------------------------------------------------------------------
+    # GRÁFICO 2: Taxa de Desbalanceamento do Alvo
+    # --------------------------------------------------------------------------
+    print("[GERANDO GRÁFICO] Plotando taxa de desbalanceamento da classe alvo...")
+
+    plt.figure(figsize=(7, 5))
+    
+    ax = sns.countplot(data=df, x='falha_maquina', palette="Set1", hue='falha_maquina', legend=False)
+    for container in ax.containers:
+        ax.bar_label(container, fmt='%d', padding=4, fontweight='bold')
+        
+    plt.title("Proporção e Desbalanceamento da Variável Alvo (Falha)", fontsize=12, fontweight='bold')
+    plt.xlabel("Estado Operacional (0 = Normal, 1 = Falha Mecânica)")
+    plt.ylabel("Contagem Absoluta de Registros")
+    plt.xticks([0, 1], ["Operação Normal (0)", "Avaria / Quebra (1)"])
+    plt.tight_layout()
+    
+    caminho_g2 = os.path.join(path_graphs, "eda_desbalanceamento_alvo.png")
+    plt.savefig(caminho_g2, dpi=150)
+    plt.close()
+    print(f"  [OK] Gráfico 2 salvo com sucesso em: {caminho_g2}")
+
+    # --------------------------------------------------------------------------
+    # GRÁFICO 3: Mapa de Calor (Correlação de Pearson)
+    # --------------------------------------------------------------------------
+    """
+    A matriz só cruza os sensores com o alvo principal (falha_maquina). 
+    Excluímos as falhas secundárias para evitar o vazamento de dados, 
+    garantindo que o modelo preveja o futuro e não o passado
+    """
+    print("[GERANDO GRÁFICO] Plotando mapa de calor da correlação linear...")
+    plt.figure(figsize=(10, 8))
+    
+    df_corr = df[colunas_sensores + ['falha_maquina']].corr(method='pearson')
+    sns.heatmap(df_corr, annot=True, cmap="coolwarm", fmt=".2f", linewidths=0.5, vmin=-1, vmax=1)
+    
+    plt.title("Matriz de Correlação de Pearson (Métricas Lineares vs Target)", fontsize=12, fontweight='bold')
+    plt.tight_layout()
+    
+    caminho_g3 = os.path.join(path_graphs, "eda_matriz_correlacao.png")
+    plt.savefig(caminho_g3, dpi=150)
+    plt.close()
+    print(f"  [OK] Gráfico 3 salvo com sucesso em: {caminho_g3}")
+
+    # --------------------------------------------------------------------------
+    # GRÁFICO 4: Boxplot de Relação Mecânica (Torque vs Rotação por Falha)
+    # --------------------------------------------------------------------------
+    """
+    Cruzamos RPM contra Torque. Como a potência depende dessas duas forças, 
+    o gráfico colorindo as falhas mostra visualmente a fronteira física exata onde a máquina entra em sobrecarga e quebra.
+    """
+    print("[GERANDO GRÁFICO BÔNUS] Plotando dispersão de Torque e RPM segregados por Falha...")
+    plt.figure(figsize=(9, 6))
+    
+    sns.scatterplot(data=df.dropna(), x='velocidade_rotacao_rpm', y='torque_nm', 
+                    hue='falha_maquina', palette="coolwarm", alpha=0.6, style='falha_maquina')
+    
+    plt.title("Análise Física Interativa: Velocidade de Rotação (RPM) vs Torque (Nm)", fontsize=12, fontweight='bold')
+    plt.xlabel("Velocidade de Rotação (RPM)")
+    plt.ylabel("Torque (Nm)")
+    plt.legend(title="Estado", labels=["Normal (0)", "Falha (1)"])
+    plt.tight_layout()
+    
+    caminho_g4 = os.path.join(path_graphs, "eda_bonus_relacao_mecanica.png")
+    plt.savefig(caminho_g4, dpi=150)
+    plt.close()
+    print(f"  [OK] Gráfico 4 (Bônus) salvo com sucesso em: {caminho_g4}")
+    print("=" * 60 + "\n")
+
 # ==============================================================================
 # MAIN
 # ==============================================================================
@@ -52,6 +181,9 @@ def main():
         
         # Fase 1: Análise Exploratória (EDA)/Inspeção dos dados
         inspecionar_dados(df_raw)
+
+        # Fase 1: Análise Exploratória (EDA)/Gráficos Exploratórios
+        gerar_graficos(df_raw)
         
     except FileNotFoundError:
         print(f"[ERRO] O arquivo não foi encontrado.")
