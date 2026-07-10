@@ -2,6 +2,7 @@
 Pipeline de IA para Análise Preditiva na Indústria 4.0
 Fase 1: Análise Exploratória de Dados (EDA) - Inspeção dos Dados, Gráficos exploratórios, Interpretação dos resultados
 Fase 2: Limpeza e Tratamento de Dados (Data Prep) - Limpeza e Estruturação de Dados, Tratamento de Dados Ausentes, Diagnóstico de Outliers
+Fase 3: Feature Engineering - Criar Features
 """
 
 import os
@@ -298,6 +299,35 @@ def gerar_boxplots(df):
     print(f"  [OK] Gráfico de Boxplots salvo em: {caminho_bp}")
 
 # ==============================================================================
+# FASE 3: FEATURE ENGINEERING  
+# ==============================================================================
+
+# --------------------------------------------------------------------------
+# 1. Criando Features 
+# --------------------------------------------------------------------------
+
+def criar_features(df_imputado):
+    """Fase 3 - Criação de novas variáveis baseadas em lógica física."""
+    print("[INFO] Iniciando Feature Engineering...")
+    
+    df = df_imputado.copy()
+    
+    # Exemplo: Criar métrica de intensidade de desgaste por temperatura de processo
+    # Adicionamos uma pequena constante para evitar divisão por zero (já tratamos nulos antes!)
+    df["taxa_desgaste_processo"] = df["desgaste_ferramenta_min"] / (df["temperatura_processo_k"] + 1e-6)
+    
+    # Criar uma flag de sobrecarga térmica (Booleana convertida para int)
+    df["flag_sobrecarga_termica"] = (df["temperatura_processo_k"] > df["temperatura_processo_k"].median()).astype(int)
+
+    print("[INFO] Novas features 'taxa_desgaste_processo' e 'flag_sobrecarga_termica' criadas.")
+    
+    # Salvando a nova versão
+    caminho_csv = "../outputs/dados_enriquecidos.csv"
+    df.to_csv(caminho_csv, index=False)
+    
+    return df
+
+# ==============================================================================
 # MAIN
 # ==============================================================================
 def main():    
@@ -319,7 +349,6 @@ def main():
         #---------------------------------------------------------
         # Fase 2: Limpeza e Tratamento de Dados (Data Prep)
         #---------------------------------------------------------
-
         # Limpeza e Estruturação de Dados
         df_limpo, relatorio_limpeza = limpar_dados(df_raw)
 
@@ -328,6 +357,12 @@ def main():
 
         # Diagnóstico de Outliers
         gerar_boxplots(df_imputado)
+
+        #---------------------------------------------------------
+        # Fase 3: Feature Engineering
+        #---------------------------------------------------------
+        # Criando Features
+        df_enriquecido = criar_features(df_imputado)
         
     except FileNotFoundError:
         print(f"[ERRO] O arquivo não foi encontrado.")
