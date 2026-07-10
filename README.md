@@ -20,7 +20,7 @@ pip install -r requirements.txt
 
 * **Inspeção dos dados:** Apresentamos as dimensões do dataset (número de linhas e colunas), os tipos de dados das variáveis e o resumo estatístico descritivo das colunas numéricas via método “.describe()”. Os resultados do terminal podem ser vistos ao fim deste arquivo em 'Execução e Diagnóstico Local (Console Output)'. 
 
-* **Gráficos exploratórios:** Geração e exportação automatizada de 4 visualizações analíticas para a pasta `outputs/plots/` utilizando as bibliotecas Matplotlib e Seaborn. Os resultados do terminal também podem ser vistos ao fim deste arquivo em 'Execução e Diagnóstico Local (Console Output)'. Temos
+* **Gráficos exploratórios:** Geração e exportação automatizada de 4 visualizações analíticas para a pasta `outputs/plots/` utilizando as bibliotecas Matplotlib e Seaborn. Os resultados também podem ser vistos ao fim deste arquivo em 'Execução e Diagnóstico Local (Console Output)'. Temos
   * **Gráfico 1 (Histogramas de Distribuição):** Análise do perfil probabilístico e escalas das 5 variáveis preditoras contínuas (sensores).
   * **Gráfico 2 (Bar Plot de Desbalanceamento):** Quantificação estrita da proporção entre a classe majoritária (Operação Normal - 0) e a minoritária (Falha Mecânica - 1) na variável alvo principal `falha_maquina`.
   * **Gráfico 3 (Heatmap de Correlação de Pearson):** Avaliação de colinearidade focada exclusivamente entre os sensores reais e o target, descartando as colunas de motivos técnicos específicos (`falha_twf`, `falha_hdf`, etc.) para evitar o vazamento de dados (*data leakage*).
@@ -29,7 +29,21 @@ pip install -r requirements.txt
   * **Restrições das Notas de Engenharia (Conformidade de Dados):** * As colunas de diagnósticos específicos (`falha_twf`, `falha_hdf`, `falha_pwf`, `falha_osf`, `falha_rnf`) foram **excluídas do mapeamento de correlação** e de qualquer futuro vetor de atributos ($X$). 
   * Por representarem o histórico de pós-evento (motivo da quebra), sua inclusão causaria um viés de *data leakage* (vazamento de rótulo), invalidando a capacidade preditiva do modelo em tempo real. Elas permanecem no ecossistema local apenas para fins de auditoria e consulta.
 
-* **Interpretação dos resultados:** Analisamos os valores numéricos e os padrões identificados nos gráficos, explicitando como eles direcionam a estratégia de modelagem.
+* **Interpretação dos resultados:** Analisamos os valores numéricos e os padrões identificados nos gráficos, explicitando como eles direcionam a estratégia de modelagem. Os resultados também podem ser vistos ao fim deste arquivo em 'Execução e Diagnóstico Local (Console Output)'.
+
+## Fase 2: Limpeza e Tratamento de Dados (Data Prep)
+
+* **Limpeza e Estruturação de Dados:** O script implementa a função `limpar_dados`, que atua como um funil rigoroso de qualidade para garantir a integridade física e matemática do dataset. Suas operações executam sequencialmente:
+
+    * **Remoção de Duplicatas:** Mapeia e elimina registros redundantes utilizando a coluna `udi` (identificador único da peça/motor) como chave de referência restrita.
+    * **Padronização Categórica:** Remove espaços em branco residuais (`.strip()`) e uniformiza as strings em letras maiúsculas (`.upper()`) nas colunas identificadoras `id_produto` e `tipo`, garantindo consistência para as próximas fases.
+    * **Filtro de Conformidade Física:** Executa uma limpeza rigorosa de anomalias, excluindo da base quaisquer registros que apresentem leituras fisicamente impossíveis para um motor industrial (ex: velocidade de rotação, temperaturas ou torque menores ou iguais a zero). 
+    * **Consistência de Tipos (*Type Casting*):** Força a tipagem correta da variável `desgaste_ferramenta_min` para o formato inteiro (`int`), prevenindo erros de alocação de memória e garantindo precisão numérica.
+    * **Auditoria de Pipeline:** A função gera um relatório transacional no console que rastreia quantitativamente cada linha alterada ou removida, assegurando transparência no tratamento inicial da base de 10.000 registros.
+
+* Identifique dados ausentes e aplique a imputação por Média ou Mediana, justificando textualmente a escolha com base na distribuição dos dados.
+
+* Gere gráficos do tipo boxplot para identificar a presença de outliers nas variáveis explicativas.
 
 
 # Execução e Diagnóstico Local (Console Output)

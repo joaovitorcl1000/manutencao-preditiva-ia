@@ -1,6 +1,7 @@
 """
 Pipeline de IA para Análise Preditiva na Indústria 4.0
 Fase 1: Análise Exploratória de Dados (EDA) - Inspeção dos Dados, Gráficos exploratórios, Interpretação dos resultados
+Fase 2: Limpeza e Tratamento de Dados (Data Prep) - Limpeza e Estruturação de Dados
 """
 
 import os
@@ -170,6 +171,57 @@ def gerar_graficos(df):
     print("=" * 60 + "\n")
 
 # ==============================================================================
+# FASE 2: LIMPEZA E TRATAMENTO DE DADOS (DATA PREP)
+# ==============================================================================
+
+# --------------------------------------------------------------------------
+# 1. Limpeza e Estruturação de Dados
+# --------------------------------------------------------------------------
+def limpar_dados(df_raw):
+    """Fase 2 (Tópico 1) - Identifique e remova as linhas duplicadas e inconsistentes."""
+    print("[INFO] Iniciando limpeza: Duplicatas, formatação de texto e filtros físicos...")
+    
+    # Criamos uma cópia para proteger a integridade do dado extraído
+    df = df_raw.copy()
+    n_inicial = len(df)
+    relatorio = {}
+
+    # 1. Identificamos e removemos possíveis linhas duplicadas pelo ID único (udi)
+    n_antes_dup = len(df)
+    df = df.drop_duplicates(subset=["udi"])
+    relatorio["duplicatas_removidas"] = n_antes_dup - len(df)
+
+    # 2. Padronização de Texto (Removemos espaços em branco e deixar em maiúsculo)
+    for col in ["id_produto", "tipo"]:
+        df[col] = df[col].astype(str).str.strip().str.upper()
+
+    # 3. Filtro, pois grandezas não podem ser negativas ou zero absolutas
+    n_antes_inv = len(df)
+    df = df[(df["velocidade_rotacao_rpm"] > 0) & 
+            (df["temperatura_ar_k"] > 0) & 
+            (df["temperatura_processo_k"] > 0) & 
+            (df["torque_nm"] > 0)]
+
+    relatorio["anomalias_fisicas_removidas"] = n_antes_inv - len(df)
+
+    # 4. Garantir tipos de dados numéricos corretos
+    df["desgaste_ferramenta_min"] = df["desgaste_ferramenta_min"].astype(int)
+
+    # Métricas Finais do Relatório
+    n_final = len(df)
+    relatorio["registros_iniciais"] = n_inicial
+    relatorio["registros_finais"] = n_final
+    relatorio["registros_removidos_total"] = n_inicial - n_final
+
+    print("\n=== RELATÓRIO DE LIMPEZA (TÓPICO 1) ===")
+    for chave, valor in relatorio.items():
+        nome_formatado = chave.replace("_", " ").title()
+        print(f"  {nome_formatado}: {valor}")
+    print("========================================\n")
+
+    return df, relatorio
+
+# ==============================================================================
 # MAIN
 # ==============================================================================
 def main():    
@@ -179,11 +231,21 @@ def main():
         print(f"[INFO] Carregando a base de dados: {data_path}")
         df_raw = pd.read_csv(data_path)
         
+        #---------------------------------------------------------
+        # Fase 1: Análise Exploratória (EDA)
+        #---------------------------------------------------------
         # Fase 1: Análise Exploratória (EDA)/Inspeção dos dados
         inspecionar_dados(df_raw)
 
         # Fase 1: Análise Exploratória (EDA)/Gráficos Exploratórios
         gerar_graficos(df_raw)
+
+        #---------------------------------------------------------
+        # Fase 2: Limpeza e Tratamento de Dados (Data Prep)
+        #---------------------------------------------------------
+
+        # Fase 2: Limpeza e Tratamento de Dados (Data Prep)/Limpeza e Estruturação de Dados
+        df_limpo, relatorio_limpeza = limpar_dados(df_raw)
         
     except FileNotFoundError:
         print(f"[ERRO] O arquivo não foi encontrado.")
