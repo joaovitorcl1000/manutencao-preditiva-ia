@@ -51,6 +51,15 @@ pip install -r requirements.txt
     * Essa distribuição não indica erros de medição, mas sim estados operacionais críticos: a presença desses valores extremos é a "assinatura" física de sobrecargas mecânicas e instabilidades, sendo essencial manter estes dados preservados para que o modelo aprenda a identificar padrões de falha.
     * O padrão observado nos *boxplots* confirma que a variabilidade dos sensores de *Torque* e *RPM* não é ruído aleatório, mas sim um reflexo da dinâmica operacional do equipamento em condições de esforço. Conclui-se, portanto, que a retenção dos *outliers* é indispensável para o treinamento de um modelo preditivo eficaz, visto que eles representam os limites físicos de operação onde a falha mecânica torna-se estatisticamente provável.
 
+## Fase 3: Feature Engineering
+
+* **Criando Features:** Criamos uma nova coluna numérica por meio de operação matemática entre colunas existentes, tratando os valores nulos previamente. Geramos de novas colunas numéricas baseadas em relações físicas entre sensores existentes.
+    * **Implementação:** * `taxa_desgaste_processo`: Calculada via divisão entre `desgaste_ferramenta_min` e `temperatura_processo_k`.
+        * `flag_sobrecarga_termica`: Variável binária baseada na mediana da temperatura.
+    * **Tratamento:** As operações foram realizadas após a etapa de imputação de nulos da Fase 2, garantindo que nenhum valor `NaN` propagasse erro na divisão matemática.
+    * **Output:** Dados enriquecidos salvos em `outputs/dados_enriquecidos.csv`.
+
+
 
 # Execução e Diagnóstico Local (Console Output)
 
