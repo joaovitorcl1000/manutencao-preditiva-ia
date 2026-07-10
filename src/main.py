@@ -4,6 +4,7 @@ Fase 1: Análise Exploratória de Dados (EDA) - Inspeção dos Dados, Gráficos 
 Fase 2: Limpeza e Tratamento de Dados (Data Prep) - Limpeza e Estruturação de Dados, Tratamento de Dados Ausentes, Diagnóstico de Outliers
 Fase 3: Feature Engineering - Criar Features
 Fase 4:  Divisão e Balanceamento dos Dados - Variáveis Preditoras e Alvo, Pareto, Reamostragem
+Fase 5: Escalonamento de Variáveis (StandardScaler)
 """
 
 import os
@@ -14,6 +15,7 @@ import seaborn as sns
 from pathlib import Path
 from sklearn.model_selection import train_test_split
 from imblearn.over_sampling import SMOTE
+from sklearn.preprocessing import StandardScaler
 
 # ==============================================================================
 # FASE 1: ANÁLISE EXPLORATÓRIA DE DADOS (EDA)
@@ -386,6 +388,47 @@ def balancear_dados(X_train, y_train):
     
     return X_train_res, y_train_res
 
+
+# ==============================================================================
+# FASE 5: ESCALONAMENTO DE VARIÁVEIS (STANDARDSCALER)
+# ==============================================================================
+def preparar_escalonamento(X_train, X_test):
+    """Fase 5 - Prepara escalas distintas para modelos baseados em distância vs. baseados em árvore."""
+    print("[INFO] Iniciando preparação de escalas...")
+    
+    colunas_continuas = [
+        'temperatura_ar_k', 'temperatura_processo_k', 
+        'velocidade_rotacao_rpm', 'torque_nm', 'desgaste_ferramenta_min', 
+        'potencia_estimada', 'taxa_desgaste_processo'
+    ]
+    
+    scaler = StandardScaler()
+    
+    # 1. Conjunto para KNN: Escalonado
+    # Aplicamos fit_transform no treino e transform no teste para evitar data leakage
+    X_train_knn = X_train.copy()
+    X_test_knn = X_test.copy()
+    
+    # 2. Conjunto para Árvores: Sem escalonamento
+    # Justificativa: Árvores de decisão realizam partições baseadas em limiares (splits) 
+    # de valores de entrada. Por serem baseadas em ordenação e impureza (Gini/Entropia), 
+    # o algoritmo é imune à escala dos atributos, tornando o escalonamento desnecessário 
+    # e mantendo a interpretabilidade das features originais.
+    X_train_tree = X_train.copy()
+    X_test_tree = X_test.copy()
+    
+    # Aplica o Scaler apenas no conjunto destinado ao KNN
+    X_train_knn[colunas_continuas] = scaler.fit_transform(X_train[colunas_continuas])
+    X_test_knn[colunas_continuas] = scaler.transform(X_test[colunas_continuas])
+    
+    # Documentação técnica interna:
+    # "Árvores de decisão são invariantes à escala, pois utilizam apenas 
+    # a ordenação dos dados para definir os splits (limiares de decisão)."
+    
+    print("[INFO] Escalonamento aplicado para KNN; Dados de árvore mantidos originais.")
+    
+    return X_train_knn, X_test_knn, X_train_tree, X_test_tree
+
 # ==============================================================================
 # MAIN
 # ==============================================================================
@@ -435,6 +478,13 @@ def main():
 
         # Reamostragem
         X_train_res, y_train_res = balancear_dados(X_train, y_train)
+
+        #---------------------------------------------------------
+        # Fase 5: Escalonamento de Variáveis (StandardScaler)
+        #---------------------------------------------------------
+        # Escalonamento
+        X_train_knn, X_test_knn, X_train_tree, X_test_tree = preparar_escalonamento(X_train_res, X_test)
+
         
     except FileNotFoundError:
         print(f"[ERRO] O arquivo não foi encontrado.")
