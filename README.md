@@ -60,6 +60,13 @@ pip install -r requirements.txt
     * **Output:** Dados enriquecidos salvos em `outputs/dados_enriquecidos.csv`.
     * **Potência Estimada (`potencia_estimada`):** Calculada pela multiplicação entre `velocidade_rotacao_rpm` e `torque_nm`. Representa a potência mecânica do sistema. Variações anômalas nesta métrica, mesmo com RPM constante, indicam falhas iminentes no esforço do motor ou resistência excessiva no corte.
 
+## Fase 4: Divisão e Balanceamento dos Dados
+
+* **Variáveis Preditoras e Alvo:** Isolar as variáveis preditoras da variável alvo.
+    * **Ação:** O dataset foi particionado em:
+        * `X`: Matriz contendo todas as features de sensores e as novas variáveis derivadas (taxa de desgaste, flag térmica e potência).
+        * `y`: Vetor contendo a variável binária `falha_maquina`.
+    * **Limpeza:** Colunas de identificação (`udi`, `id_produto`) e categóricas (`tipo`) foram descartadas desta etapa para evitar ruído no modelo preditivo.
 
 # Execução e Diagnóstico Local (Console Output)
 
