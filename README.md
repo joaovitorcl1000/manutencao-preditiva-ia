@@ -68,6 +68,20 @@ pip install -r requirements.txt
         * `y`: Vetor contendo a variável binária `falha_maquina`.
     * **Limpeza:** Colunas de identificação (`udi`, `id_produto`) e categóricas (`tipo`) foram descartadas desta etapa para evitar ruído no modelo preditivo.
 
+* **Pareto:** Dividimos os dados seguindo o princípio de Pareto, em treino (80%) e teste (20%) utilizando o parâmetro stratify=y.
+
+* **Reamostragem:** Aplicamos uma técnica de reamostragem (SMOTE ou Random Under Sampling) exclusivamente nos dados de treino para evitar o vazamento de dados (Data Leakage).
+
+## Fase 5: Escalonamento de Variáveis (StandardScaler)
+
+* **Abordagem Híbrida:** Aplicamos o StandardScaler apenas nas variáveis contínuas destinadas ao modelo KNN (utilizando fit_transform no treino e transform no teste).
+    * **Para KNN (Modelos de Distância):** Aplicação de `StandardScaler` nas variáveis contínuas para equalizar a influência dos sensores no cálculo da distância Euclidiana.
+    * **Para Árvores de Decisão:** Os dados foram mantidos sem escalonamento. Como o algoritmo de árvore realiza partições baseadas em limiares (splits) de valores, a normalização é desnecessária e mantê-la preserva a interpretabilidade das features originais.
+* **Segurança:** Utilizado `fit_transform` exclusivamente no treino para evitar *data leakage*. Mantemos os dados da Árvore de Decisão sem escalonamento, justificando no código o motivo de o algoritmo ser imune à escala dos atributos.
+
+
+
+
 # Execução e Diagnóstico Local (Console Output)
 
 ## Resultados Fase 1: Análise Exploratória (EDA)
