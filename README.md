@@ -152,7 +152,7 @@ max    10000.00000        304.500000              313.800000             2886.00
 | Gráficos de Distribuição e Alvo | Matriz e Relação Física |
 | :---: | :---: |
 | **Gráfico 1: Distribuição**<br><img src="outputs/plots/eda_distribuicao_sensores.png" width="400" alt="Distribuição"> | **Gráfico 2: Desbalanceamento**<br><img src="outputs/plots/eda_desbalanceamento_alvo.png" width="400" alt="Desbalanceamento"> |
-| **Gráfico 3: Correlação**<br><img src="outputs/plots/eda_matriz_correlacao.png" width="400" alt="Correlação"> | **Gráfico 4: Dispersão Física**<br><img src="outputs/plots/eda_bonus_relacao_mecanica.png" width="400" alt="Bônus"> |
+| **Gráfico 3: Correlação**<br><img src="outputs/plots/eda_matriz_correlacao.png" width="400" alt="Correlação"> | **Gráfico 4: Dispersão Física**<br><img src="outputs/plots/eda_relacao_mecanica.png" width="400" alt="Bônus"> |
 
 ### Interpretação dos Resultados: Inspeção Estrutural e Estatística
 
