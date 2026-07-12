@@ -5,7 +5,7 @@ Fase 2: Limpeza e Tratamento de Dados (Data Prep) - Limpeza e Estruturação de 
 Fase 3: Feature Engineering - Criar Features
 Fase 4:  Divisão e Balanceamento dos Dados - Variáveis Preditoras e Alvo, Pareto, Reamostragem
 Fase 5: Escalonamento de Variáveis (StandardScaler)
-Fase 6: Ajuste de Parâmetros e Combate ao Overfitting - Treinamento KNN
+Fase 6: Ajuste de Parâmetros e Combate ao Overfitting - Treinamento KNN, Treinamento Tree
 """
 
 import os
@@ -19,6 +19,7 @@ from imblearn.over_sampling import SMOTE
 from sklearn.preprocessing import StandardScaler
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import accuracy_score
+from sklearn.tree import DecisionTreeClassifier
 
 # ==============================================================================
 # FASE 1: ANÁLISE EXPLORATÓRIA DE DADOS (EDA)
@@ -466,6 +467,14 @@ def preparar_escalonamento(X_train, X_test):
     
     return X_train_knn, X_test_knn, X_train_tree, X_test_tree
 
+# ==============================================================================
+# FASE 6: AJUSTE DE PARÂMETROS E COMBATE AO OVERFITTING
+# ==============================================================================
+
+# --------------------------------------------------------------------------
+# Treinamento KNN
+# --------------------------------------------------------------------------
+
 def treinar_knn_ajuste(X_train, y_train, X_test, y_test, valores_k=[3, 5, 7]):
     print(f"\n[INFO] Iniciando ajuste de hiperparâmetros (KNN)...")
     resultados = {}
@@ -484,6 +493,30 @@ def treinar_knn_ajuste(X_train, y_train, X_test, y_test, valores_k=[3, 5, 7]):
         
         resultados[k] = {"train": acc_train, "test": acc_test}
         print(f"  [K={k}] Acurácia Treino: {acc_train:.4f} | Acurácia Teste: {acc_test:.4f}")
+        
+    return resultados
+
+# --------------------------------------------------------------------------
+# Treinamento Tree
+# --------------------------------------------------------------------------
+
+def treinar_arvore_ajuste(X_train, y_train, X_test, y_test, profundidades=[3, 5, None]):
+    print(f"\n[INFO] Iniciando ajuste de hiperparâmetros (Árvore de Decisão)...")
+    resultados = {}
+    
+    for depth in profundidades:
+        clf = DecisionTreeClassifier(max_depth=depth, random_state=42)
+        clf.fit(X_train, y_train)
+        
+        pred_train = clf.predict(X_train)
+        pred_test = clf.predict(X_test)
+        
+        acc_train = accuracy_score(y_train, pred_train)
+        acc_test = accuracy_score(y_test, pred_test)
+        
+        resultados[depth] = {"train": acc_train, "test": acc_test}
+        nome_depth = "None" if depth is None else str(depth)
+        print(f"  [Depth={nome_depth}] Acurácia Treino: {acc_train:.4f} | Acurácia Teste: {acc_test:.4f}")
         
     return resultados
 
@@ -549,6 +582,9 @@ def main():
         
         # Treinamento KNN
         resultados_knn = treinar_knn_ajuste(X_train_knn, y_train_res, X_test_knn, y_test)
+
+        #Treinamento Tree
+        resultados_tree = treinar_arvore_ajuste(X_train_tree, y_train_res, X_test_tree, y_test)
 
     except FileNotFoundError:
         print(f"[ERRO] O arquivo não foi encontrado.")
