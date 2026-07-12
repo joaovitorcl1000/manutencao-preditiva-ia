@@ -62,11 +62,27 @@ pip install -r requirements.txt
 
 ## Fase 4: Divisão e Balanceamento dos Dados
 
-* **Variáveis Preditoras e Alvo:** Isolar as variáveis preditoras da variável alvo.
-    * **Ação:** O dataset foi particionado em:
-        * `X`: Matriz contendo todas as features de sensores e as novas variáveis derivadas (taxa de desgaste, flag térmica e potência).
-        * `y`: Vetor contendo a variável binária `falha_maquina`.
-    * **Limpeza:** Colunas de identificação (`udi`, `id_produto`) e categóricas (`tipo`) foram descartadas desta etapa para evitar ruído no modelo preditivo.
+### **Variáveis Preditoras e Alvo**
+
+A etapa de preparação de dados focou em isolar apenas as variáveis que representam estados operacionais da máquina, garantindo que o modelo aprenda padrões físicos e não correlacione dados técnicos de diagnóstico ou identificação.
+
+* **Matriz Preditora (`X`):** Composta por 8 colunas de sensores e métricas derivadas, descritas abaixo:
+    * `temperatura_ar_k` (*float64*): Temperatura ambiente (Kelvin).
+    * `temperatura_processo_k` (*float64*): Temperatura de operação (Kelvin).
+    * `velocidade_rotacao_rpm` (*float64*): Velocidade de giro do motor (RPM).
+    * `torque_nm` (*float64*): Força de torção (Nm).
+    * `desgaste_ferramenta_min` (*int64*): Tempo de uso acumulado (minutos).
+    * `taxa_desgaste_processo` (*float64*): Métrica derivada de eficiência de corte.
+    * `flag_sobrecarga_termica` (*int64*): Indicador booleano de estresse térmico.
+    * `potencia_estimada` (*float64*): Potência calculada a partir de torque e RPM.
+
+* **Variável Alvo (`y`):**
+    * `falha_maquina`: Variável binária (0 = Normal, 1 = Falha).
+
+* **Critérios de Limpeza:**
+    * **Identificação:** Colunas `udi` e `id_produto` descartadas (não possuem poder preditivo).
+    * **Categóricas:** Coluna `tipo` descartada nesta versão para foco em modelos puramente numéricos.
+    * **Prevenção de Data Leakage:** Todas as colunas de diagnóstico de falha (`falha_twf`, `falha_hdf`, `falha_pwf`, `falha_osf`, `falha_rnf`) foram rigorosamente removidas, evitando que o modelo tivesse acesso à "causa da quebra" durante o treinamento.
 
 * **Pareto:** Dividimos os dados seguindo o princípio de Pareto, em treino (80%) e teste (20%) utilizando o parâmetro stratify=y.
 
@@ -79,8 +95,27 @@ pip install -r requirements.txt
     * **Para Árvores de Decisão:** Os dados foram mantidos sem escalonamento. Como o algoritmo de árvore realiza partições baseadas em limiares (splits) de valores, a normalização é desnecessária e mantê-la preserva a interpretabilidade das features originais.
 * **Segurança:** Utilizado `fit_transform` exclusivamente no treino para evitar *data leakage*. Mantemos os dados da Árvore de Decisão sem escalonamento, justificando no código o motivo de o algoritmo ser imune à escala dos atributos.
 
+## Fase 6: Ajuste de Parâmetros e Combate ao Overfitting
 
+* **Treinamento KNN:** Treinamos o modelo variando o parâmetro n_neighbors (K) por no mínimo 3 valores ímpares (ex: K = 3, 5, 7) e registre a acurácia no treino e no teste.
+    ```
+    [INFO] Iniciando ajuste de hiperparâmetros (KNN)...
+    [K=3] Acurácia Treino: 0.9750 | Acurácia Teste: 0.9158
+    [K=5] Acurácia Treino: 0.9657 | Acurácia Teste: 0.9021
+    [K=7] Acurácia Treino: 0.9569 | Acurácia Teste: 0.9005
+    ```
+    * **Ponto de Overfitting:** O modelo apresentou sinais claros de overfitting no valor de **K=3**. Embora tenha alcançado a maior acurácia de teste (0.9158), a discrepância de ~6% entre o treino (0.9750) e o teste indica que o modelo estava excessivamente sensível aos ruídos específicos do conjunto de treinamento.
+    * **Estabilidade:** A configuração **K=7** garantiu a maior estabilidade. Embora a acurácia absoluta tenha sido marginalmente menor que em K=3, a diferença entre treino e teste diminuiu (0.9569 vs 0.9005), indicando que o modelo tornou-se mais robusto e com melhor capacidade de generalização para dados inéditos.
 
+* **Treinamento Tree:** Treinamos o modelo variando o parâmetro max_depth por no mínimo 3 limites (ex: 3, 5 e None) e registre a acurácia no treino e no teste.
+    ```
+    [INFO] Iniciando ajuste de hiperparâmetros (Árvore de Decisão)...
+    [Depth=3] Acurácia Treino: 0.8562 | Acurácia Teste: 0.8553
+    [Depth=5] Acurácia Treino: 0.9073 | Acurácia Teste: 0.8716
+    [Depth=None] Acurácia Treino: 1.0000 | Acurácia Teste: 0.9400
+    ```
+    * **Ponto de Overfitting:** O overfitting crítico foi identificado na configuração `Depth=None`. O modelo atingiu uma acurácia de 100% no conjunto de treino ("memorização"), criando regras excessivamente complexas que, embora mantenham uma boa performance no teste (0.9400), tornam o modelo vulnerável a ruídos em dados futuros. Também podemos identificar um possível underfitting em '[Depth=3] Acurácia Treino: 0.8562 | Acurácia Teste: 0.8553' talvez pelo fato de que o modelo é simples demais para capturar a estrutura real do problema.
+    * **Estabilidade:** A configuração **`Depth=5`** garantiu o melhor equilíbrio entre estabilidade e performance. Ela apresenta uma acurácia próxima entre treino (0.9073) e teste (0.8716), demonstrando uma capacidade de aprendizado robusta e uma menor discrepância de generalização em comparação aos extremos de profundidade.
 
 # Execução e Diagnóstico Local (Console Output)
 
