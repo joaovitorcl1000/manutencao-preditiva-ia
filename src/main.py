@@ -5,6 +5,7 @@ Fase 2: Limpeza e Tratamento de Dados (Data Prep) - Limpeza e Estruturação de 
 Fase 3: Feature Engineering - Criar Features
 Fase 4:  Divisão e Balanceamento dos Dados - Variáveis Preditoras e Alvo, Pareto, Reamostragem
 Fase 5: Escalonamento de Variáveis (StandardScaler)
+Fase 6: Ajuste de Parâmetros e Combate ao Overfitting - Treinamento KNN
 """
 
 import os
@@ -16,6 +17,8 @@ from pathlib import Path
 from sklearn.model_selection import train_test_split
 from imblearn.over_sampling import SMOTE
 from sklearn.preprocessing import StandardScaler
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import accuracy_score
 
 # ==============================================================================
 # FASE 1: ANÁLISE EXPLORATÓRIA DE DADOS (EDA)
@@ -463,6 +466,27 @@ def preparar_escalonamento(X_train, X_test):
     
     return X_train_knn, X_test_knn, X_train_tree, X_test_tree
 
+def treinar_knn_ajuste(X_train, y_train, X_test, y_test, valores_k=[3, 5, 7]):
+    print(f"\n[INFO] Iniciando ajuste de hiperparâmetros (KNN)...")
+    resultados = {}
+    
+    for k in valores_k:
+        knn = KNeighborsClassifier(n_neighbors=k)
+        knn.fit(X_train, y_train)
+        
+        # Predições
+        pred_train = knn.predict(X_train)
+        pred_test = knn.predict(X_test)
+        
+        # Métricas
+        acc_train = accuracy_score(y_train, pred_train)
+        acc_test = accuracy_score(y_test, pred_test)
+        
+        resultados[k] = {"train": acc_train, "test": acc_test}
+        print(f"  [K={k}] Acurácia Treino: {acc_train:.4f} | Acurácia Teste: {acc_test:.4f}")
+        
+    return resultados
+
 # ==============================================================================
 # MAIN
 # ==============================================================================
@@ -519,7 +543,13 @@ def main():
         # Escalonamento
         X_train_knn, X_test_knn, X_train_tree, X_test_tree = preparar_escalonamento(X_train_res, X_test)
 
+        #---------------------------------------------------------
+        #Fase 6: Ajuste de Parâmetros e Combate ao Overfitting        
+        #---------------------------------------------------------
         
+        # Treinamento KNN
+        resultados_knn = treinar_knn_ajuste(X_train_knn, y_train_res, X_test_knn, y_test)
+
     except FileNotFoundError:
         print(f"[ERRO] O arquivo não foi encontrado.")
 
