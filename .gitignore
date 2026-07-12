@@ -1,8 +1,8 @@
 # Ignorar a base de dados pesada para não poluir o GitHub
-data/manutencao_preditiva.csv
+#data/manutencao_preditiva.csv
 
 # Ignorar os gráficos gerados automaticamente localmente na máquina
-outputs/graficos/*.png
+#outputs/graficos/*.png
 
 # Ignorar arquivos temporários do Word/Office e o binário bruto
 *.docx
