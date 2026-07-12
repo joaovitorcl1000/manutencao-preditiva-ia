@@ -345,13 +345,44 @@ def dividir_dados(df_enriquecido):
     # Definindo a variável alvo (Target)
     target = 'falha_maquina'
     
-    # Excluindo o alvo e colunas não numéricas que não agregam ao modelo 
-    X = df_enriquecido.drop(columns=[target, 'udi', 'id_produto', 'tipo'], errors='ignore')
+    # Lista de colunas a serem excluídas:
+    # 1. Identificadores (udi, id_produto)
+    # 2. Categóricas que não foram tratadas (tipo)
+    # 3. Colunas de "Data Leakage" (motivos específicos da falha)
+    colunas_para_excluir = [
+        target, 
+        'udi', 
+        'id_produto', 
+        'tipo',
+        'falha_twf', 
+        'falha_hdf', 
+        'falha_pwf', 
+        'falha_osf', 
+        'falha_rnf'
+    ]
+    
+    # Garantindo que excluímos apenas o que existe no DataFrame
+    X = df_enriquecido.drop(columns=colunas_para_excluir, errors='ignore')
+
+    # --- Relatórios de Auditoria dos Dados ---
+    print("\n" + "="*60)
+    print("      RELATÓRIO DE AUDITORIA DAS VARIÁVEIS PREDITORAS (X)")
+    print("="*60)
+    
+    # Informações de tipo e nulos
+    print("\n[INFO] Estrutura das colunas (info):")
+    X.info()
+    print(f"[INFO] Variáveis preditoras (X) shape: {X.shape}")
+
+    
+    # Estatísticas descritivas
+    print("\n[INFO] Resumo estatístico (describe):")
+    print(X.describe().T) # Usamos o .T (transposta) para ficar mais fácil de ler no terminal
+    print("="*60 + "\n")
     
     # Definindo o vetor alvo
     y = df_enriquecido[target]
     
-    print(f"[INFO] Variáveis preditoras (X) shape: {X.shape}")
     print(f"[INFO] Variável alvo (y) shape: {y.shape}")
     
     return X, y
