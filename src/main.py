@@ -159,22 +159,25 @@ def gerar_graficos(df):
     Cruzamos RPM contra Torque. Como a potência depende dessas duas forças, 
     o gráfico colorindo as falhas mostra visualmente a fronteira física exata onde a máquina entra em sobrecarga e quebra.
     """
-    print("[GERANDO GRÁFICO BÔNUS] Plotando dispersão de Torque e RPM segregados por Falha...")
+    print("[GERANDO GRÁFICO] Plotando dispersão de Torque e RPM segregados por Falha...")
     plt.figure(figsize=(9, 6))
     
-    sns.scatterplot(data=df.dropna(), x='velocidade_rotacao_rpm', y='torque_nm', 
-                    hue='falha_maquina', palette="coolwarm", alpha=0.6, style='falha_maquina')
+    ax = sns.scatterplot(data=df.dropna(), x='velocidade_rotacao_rpm', y='torque_nm', 
+                         hue='falha_maquina', palette="coolwarm", alpha=0.6, style='falha_maquina')
     
     plt.title("Análise Física Interativa: Velocidade de Rotação (RPM) vs Torque (Nm)", fontsize=12, fontweight='bold')
     plt.xlabel("Velocidade de Rotação (RPM)")
     plt.ylabel("Torque (Nm)")
-    plt.legend(title="Estado", labels=["Normal (0)", "Falha (1)"])
+    
+    handles, _ = ax.get_legend_handles_labels()
+    ax.legend(handles=handles, title="Estado Operacional", labels=["Normal (0)", "Falha (1)"])
+    
     plt.tight_layout()
     
-    caminho_g4 = os.path.join(path_graphs, "eda_bonus_relacao_mecanica.png")
+    caminho_g4 = os.path.join(path_graphs, "eda_relacao_mecanica.png")
     plt.savefig(caminho_g4, dpi=150)
     plt.close()
-    print(f"  [OK] Gráfico 4 (Bônus) salvo com sucesso em: {caminho_g4}")
+    print(f"  [OK] Gráfico 4 salvo com sucesso em: {caminho_g4}")
     print("=" * 60 + "\n")
 
 # ==============================================================================
