@@ -6,6 +6,7 @@ Fase 3: Feature Engineering - Criar Features
 Fase 4:  Divisão e Balanceamento dos Dados - Variáveis Preditoras e Alvo, Pareto, Reamostragem
 Fase 5: Escalonamento de Variáveis (StandardScaler)
 Fase 6: Ajuste de Parâmetros e Combate ao Overfitting - Treinamento KNN, Treinamento Tree
+Fase 7: Avaliação da Acurácia e Veredito Final
 """
 
 import os
@@ -20,6 +21,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import classification_report, confusion_matrix
 
 # ==============================================================================
 # FASE 1: ANÁLISE EXPLORATÓRIA DE DADOS (EDA)
@@ -521,6 +523,26 @@ def treinar_arvore_ajuste(X_train, y_train, X_test, y_test, profundidades=[3, 5,
     return resultados
 
 # ==============================================================================
+# FASE 7: AVALIAÇÃO DA ACURÁCIA E VEREDITO FINAL
+# ==============================================================================
+def model_evaluation(modelo, X_test, y_test, nome_modelo):
+    """Fase 7 - Avaliação detalhada do melhor modelo."""
+    print(f"\n" + "="*60)
+    print(f"      VEREDITO FINAL: {nome_modelo.upper()}")
+    print("="*60)
+    
+    y_pred = modelo.predict(X_test)
+    
+    # Relatório de Classificação
+    print("\n[INFO] Classification Report:")
+    print(classification_report(y_test, y_pred))
+    
+    # Matriz de Confusão
+    print("\n[INFO] Matriz de Confusão:")
+    print(confusion_matrix(y_test, y_pred))
+    print("="*60 + "\n")
+
+# ==============================================================================
 # MAIN
 # ==============================================================================
 def main():    
@@ -585,6 +607,22 @@ def main():
 
         #Treinamento Tree
         resultados_tree = treinar_arvore_ajuste(X_train_tree, y_train_res, X_test_tree, y_test)
+
+        print("\n[INFO] Treinando modelos vencedores para veredito final...")
+        
+        # KNN com melhor K (3)
+        melhor_knn = KNeighborsClassifier(n_neighbors=3)
+        melhor_knn.fit(X_train_knn, y_train_res)
+        
+        # Árvore com melhor Depth (5)
+        melhor_arvore = DecisionTreeClassifier(max_depth=5, random_state=42)
+        melhor_arvore.fit(X_train_tree, y_train_res)
+
+        #---------------------------------------------------------
+        #Fase 7: Avaliação da Acurácia e Veredito Final       
+        #---------------------------------------------------------
+        model_evaluation(melhor_knn, X_test_knn, y_test, "KNN (K=3)")
+        model_evaluation(melhor_arvore, X_test_tree, y_test, "Árvore (Depth=5)")
 
     except FileNotFoundError:
         print(f"[ERRO] O arquivo não foi encontrado.")

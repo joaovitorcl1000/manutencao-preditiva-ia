@@ -117,6 +117,55 @@ A etapa de preparação de dados focou em isolar apenas as variáveis que repres
     * **Ponto de Overfitting:** O overfitting crítico foi identificado na configuração `Depth=None`. O modelo atingiu uma acurácia de 100% no conjunto de treino ("memorização"), criando regras excessivamente complexas que, embora mantenham uma boa performance no teste (0.9400), tornam o modelo vulnerável a ruídos em dados futuros. Também podemos identificar um possível underfitting em '[Depth=3] Acurácia Treino: 0.8562 | Acurácia Teste: 0.8553' talvez pelo fato de que o modelo é simples demais para capturar a estrutura real do problema.
     * **Estabilidade:** A configuração **`Depth=5`** garantiu o melhor equilíbrio entre estabilidade e performance. Ela apresenta uma acurácia próxima entre treino (0.9073) e teste (0.8716), demonstrando uma capacidade de aprendizado robusta e uma menor discrepância de generalização em comparação aos extremos de profundidade.
 
+## Fase 7: Avaliação da Acurácia e Veredito Final
+
+* **Acurácia:** Calculamos a acurácia final do melhor KNN e da melhor árvore de decisão utilizando os dados de teste.
+    * A avaliação final comparou o modelo KNN (K=3) e a Árvore de Decisão (Depth=5) utilizando o *Classification Report* e a Matriz de Confusão para determinar a eficácia na detecção de falhas industriais.
+
+    ```
+    ============================================================
+        VEREDITO FINAL: KNN (K=3)
+    ============================================================
+    [INFO] Classification Report:
+                precision    recall  f1-score   support
+            0       0.99      0.92      0.95      1836
+            1       0.26      0.80      0.39        64
+
+        accuracy                           0.92      1900
+    macro avg       0.62      0.86      0.67      1900
+    weighted avg       0.97      0.92      0.94      1900
+
+    [INFO] Matriz de Confusão:
+    [[1689  147]
+    [  13   51]]
+    ============================================================
+
+    ============================================================
+        VEREDITO FINAL: ÁRVORE (DEPTH=5)
+    ============================================================
+    [INFO] Classification Report:
+                precision    recall  f1-score   support
+            0       1.00      0.87      0.93      1836
+            1       0.20      0.97      0.34        64
+
+        accuracy                           0.87      1900
+    macro avg       0.60      0.92      0.63      1900
+    weighted avg       0.97      0.87      0.91      1900
+
+    [INFO] Matriz de Confusão:
+    [[1594  242]
+    [   2   62]]
+    ============================================================
+    ```
+
+    * ### Comparação de Taxas de Acerto
+        * **Acurácia Global:** O KNN (0.92) apresenta um desempenho superior à Árvore de Decisão (0.87) na métrica de acurácia global. Contudo, devido ao desbalanceamento da base de dados, esta métrica não deve ser o critério principal, pois é inflada pelo alto desempenho na classe majoritária (operação normal).
+        * **Recall (Capacidade de Detecção):** A Árvore de Decisão (Recall 0.97) é drasticamente superior ao KNN (Recall 0.80) na detecção da classe de falha (classe 1). Enquanto o KNN permitiu a ocorrência de 13 falhas não detectadas, a Árvore reduziu esse número para apenas 2.
+
+## Conclusão
+
+O modelo selecionado para adoção pela empresa é a **Árvore de Decisão (Depth=5)**. Em sistemas de manutenção preditiva, o objetivo primordial é a minimização de **Falsos Negativos** (falhas catastróficas não detectadas). Embora a Árvore apresente uma precisão menor (gerando mais alarmes falsos, ou Falsos Positivos), ela garante uma cobertura de detecção de falhas de 97%. Para a empresa, o custo operacional de uma checagem preventiva baseada em um alarme falso é infinitamente menor do que o custo de uma falha não prevista que comprometa a integridade dos ativos industriais.
+
 # Execução e Diagnóstico Local (Console Output)
 
 ## Resultados Fase 1: Análise Exploratória (EDA)
