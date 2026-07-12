@@ -1,6 +1,21 @@
-# Manutenção Preditiva IA
+# SMPI-SCTEC -- Sistema de Manutenção Preditiva Industrial
 
-## Instalação
+## 1. Escopo do Projeto
+
+O **SMPI-SCTEC** é uma solução inteligente de análise preditiva voltada para a Indústria 4.0. O problema que resolvemos é a **detecção antecipada de falhas em ativos mecânicos**, permitindo que a empresa transite de um modelo de manutenção reativa para um modelo preditivo. Isso reduz drasticamente paradas não planejadas e custos operacionais, aumentando a vida útil dos equipamentos.
+
+## 2. Tecnologias e Técnicas Utilizadas
+
+O projeto utiliza um pipeline completo de Data Science:
+* **Linguagens e Ambientes:** Python 3.10+
+* **Manipulação e EDA:** `pandas`, `numpy`, `matplotlib`, `seaborn`
+* **Machine Learning:** `scikit-learn` (KNN e Árvores de Decisão), `imbalanced-learn` (SMOTE)
+* **Pipeline:** Padronização (`StandardScaler`) e Engenharia de Recursos (Cálculo de Potência).
+
+| **Correlação**<br><img src="outputs/plots/eda_matriz_correlacao.png" width="400" alt="Correlação"> |
+
+## 3. Como Executar
+Siga os passos abaixo para configurar o ambiente e rodar a análise:
 
 ```bash
 # 1. Cria o ambiente virtual chamado '.venv'
@@ -166,6 +181,12 @@ A etapa de preparação de dados focou em isolar apenas as variáveis que repres
 
 O modelo selecionado para adoção pela empresa é a **Árvore de Decisão (Depth=5)**. Em sistemas de manutenção preditiva, o objetivo primordial é a minimização de **Falsos Negativos** (falhas catastróficas não detectadas). Embora a Árvore apresente uma precisão menor (gerando mais alarmes falsos, ou Falsos Positivos), ela garante uma cobertura de detecção de falhas de 97%. Para a empresa, o custo operacional de uma checagem preventiva baseada em um alarme falso é infinitamente menor do que o custo de uma falha não prevista que comprometa a integridade dos ativos industriais.
 
+## Melhorias Futuras
+
+* **Modelos Avançados:** Implementar *Random Forest* ou *XGBoost* para impedir o overfitting e conseguir extrair mais nuances dos dados.
+* **Dashboard:** Integração com *Streamlit* para tempo real.
+* **CI/CD:** Automação de re-treinamento via *GitHub Actions*.
+
 # Execução e Diagnóstico Local (Console Output)
 
 ## Resultados Fase 1: Análise Exploratória (EDA)
@@ -236,7 +257,7 @@ max    10000.00000        304.500000              313.800000             2886.00
 | Gráficos de Distribuição e Alvo | Matriz e Relação Física |
 | :---: | :---: |
 | **Gráfico 1: Distribuição**<br><img src="outputs/plots/eda_distribuicao_sensores.png" width="400" alt="Distribuição"> | **Gráfico 2: Desbalanceamento**<br><img src="outputs/plots/eda_desbalanceamento_alvo.png" width="400" alt="Desbalanceamento"> |
-| **Gráfico 3: Correlação**<br><img src="outputs/plots/eda_matriz_correlacao.png" width="400" alt="Correlação"> | **Gráfico 4: Dispersão Física**<br><img src="outputs/plots/eda_relacao_mecanica.png" width="400" alt="Bônus"> |
+| **Gráfico 3: Correlação**<br><img src="outputs/plots/eda_matriz_correlacao.png" width="400" alt="Correlação"> | **Gráfico 4: Dispersão Física**<br><img src="outputs/plots/eda_relacao_mecanica.png" width="400" alt="Relação"> |
 
 ### Interpretação dos Resultados: Inspeção Estrutural e Estatística
 
