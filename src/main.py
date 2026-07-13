@@ -324,7 +324,7 @@ def criar_features(df_imputado):
     
     df = df_imputado.copy()
     
-    df["taxa_desgaste_processo"] = df["desgaste_ferramenta_min"] / (df["temperatura_processo_k"] + 1e-6)
+    df["ratio_temp"] = df["temperatura_ar_k"] / (df["temperatura_processo_k"] + 1e-6)
     
     df["flag_sobrecarga_termica"] = (df["temperatura_processo_k"] > df["temperatura_processo_k"].median()).astype(int)
 
@@ -364,7 +364,11 @@ def dividir_dados(df_enriquecido):
         'falha_hdf', 
         'falha_pwf', 
         'falha_osf', 
-        'falha_rnf'
+        'falha_rnf',
+        'flag_sobrecarga_termica',
+        'temperatura_ar_k',
+        'velocidade_rotacao_rpm',
+        'torque_nm'
     ]
     
     # Garantindo que excluímos apenas o que existe no DataFrame
@@ -379,8 +383,22 @@ def dividir_dados(df_enriquecido):
     print("\n[INFO] Estrutura das colunas (info):")
     X.info()
     print(f"[INFO] Variáveis preditoras (X) shape: {X.shape}")
-
     
+    # --- Plot da Matriz de Correlação ---
+    plt.figure(figsize=(8, 6))
+    sns.set_theme(style="white")
+    
+    # Recalcula a matriz garantindo que é o X limpo
+    corr_matrix = X.corr()
+        
+    # Plot direto
+    sns.heatmap(corr_matrix, annot=True, cmap="coolwarm", 
+                fmt=".2f", linewidths=0.5, vmin=-1, vmax=1)
+    
+    plt.title("Matriz de Correlação Otimizada", fontsize=14, fontweight='bold')
+    plt.tight_layout()
+    plt.savefig("../outputs/plots/matriz_correlação_X.png")
+
     # Estatísticas descritivas
     print("\n[INFO] Resumo estatístico (describe):")
     print(X.describe().T) # Usamos o .T (transposta) para ficar mais fácil de ler no terminal
@@ -437,9 +455,8 @@ def preparar_escalonamento(X_train, X_test):
     print("[INFO] Iniciando preparação de escalas...")
     
     colunas_continuas = [
-        'temperatura_ar_k', 'temperatura_processo_k', 
-        'velocidade_rotacao_rpm', 'torque_nm', 'desgaste_ferramenta_min', 
-        'potencia_estimada', 'taxa_desgaste_processo'
+        'ratio_temp', 'temperatura_processo_k', 
+        'desgaste_ferramenta_min', 'potencia_estimada'
     ]
     
     scaler = StandardScaler()

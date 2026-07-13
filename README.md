@@ -69,7 +69,7 @@ pip install -r requirements.txt
 ## Fase 3: Feature Engineering
 
 * **Criando Features:** Criamos uma nova coluna numérica por meio de operação matemática entre colunas existentes, tratando os valores nulos previamente. Geramos de novas colunas numéricas baseadas em relações físicas entre sensores existentes.
-    * **Implementação:** * `taxa_desgaste_processo`: Calculada via divisão entre `desgaste_ferramenta_min` e `temperatura_processo_k`.
+    * **Implementação:** * `ratio_temp`: Calculada via divisão entre `temperatura_ar_k` e `temperatura_processo_k`. As duas têm correlação muito alta. Levando em conta essa variável, e excluindo `temperatura_ar_k` da análise, a correlação do sistema diminui.
         * `flag_sobrecarga_termica`: Variável binária baseada na mediana da temperatura.
     * **Tratamento:** As operações foram realizadas após a etapa de imputação de nulos da Fase 2, garantindo que nenhum valor `NaN` propagasse erro na divisão matemática.
     * **Output:** Dados enriquecidos salvos em `outputs/dados_enriquecidos.csv`.
@@ -82,14 +82,30 @@ pip install -r requirements.txt
 A etapa de preparação de dados focou em isolar apenas as variáveis que representam estados operacionais da máquina, garantindo que o modelo aprenda padrões físicos e não correlacione dados técnicos de diagnóstico ou identificação.
 
 * **Matriz Preditora (`X`):** Composta por 8 colunas de sensores e métricas derivadas, descritas abaixo:
-    * `temperatura_ar_k` (*float64*): Temperatura ambiente (Kelvin).
     * `temperatura_processo_k` (*float64*): Temperatura de operação (Kelvin).
-    * `velocidade_rotacao_rpm` (*float64*): Velocidade de giro do motor (RPM).
-    * `torque_nm` (*float64*): Força de torção (Nm).
     * `desgaste_ferramenta_min` (*int64*): Tempo de uso acumulado (minutos).
-    * `taxa_desgaste_processo` (*float64*): Métrica derivada de eficiência de corte.
-    * `flag_sobrecarga_termica` (*int64*): Indicador booleano de estresse térmico.
+    * `ratio_temp` (*float64*): Razão entre a temperatura do ar e do processo. Ela é capaz de abaixar a correlação do `X` como um todo.
     * `potencia_estimada` (*float64*): Potência calculada a partir de torque e RPM.
+
+A matriz de correlação de $X$ pode ser vista abaixo.
+
+* **Variáveis excluídas:** 
+    * `temperatura_ar_k` (*float64*): Temperatura ambiente (Kelvin). Está muito correlacionada à `temperatura_processo_k`, que já carrega a informação térmica crítica. A temperatura do ar é uma variável externa que sofre muito ruído (ex: porta da fábrica aberta).
+    * `flag_sobrecarga_termica` (*int64*): Indicador booleano de estresse térmico. Redundante. A árvore de decisão já consegue calcular esse limiar a partir da `temperatura_processo_k` de forma mais precisa que o seu corte fixo na mediana.
+    * `velocidade_rotacao_rpm` (*float64*): Velocidade de giro do motor (RPM), e `torque_nm` (*float64*): Força de torção (Nm), pois estão bem anticorrelacionados ($\sim -0.88$). Assim, toda a informação deles está na variável combinação `potencia_estimada` que é o produto dos dois.
+    * **Variáveis de Identificação (Excluídas):**
+    * `udi`
+    * `id_produto`
+    * `tipo`
+
+    * **Variáveis de Diagnóstico (Excluídas por orientação do Depto. de Engenharia):**
+    * *Justificativa:* Estas colunas representam causas específicas de falha e sua inclusão geraria *Data Leakage* (vazamento de dados), comprometendo a validade preditiva do modelo.
+    * `falha_twf` (Tool Wear Failure)
+    * `falha_hdf` (Heat Dissipation Failure)
+    * `falha_pwf` (Power Failure)
+    * `falha_osf` (Overstrain Failure)
+    * `falha_rnf` (Random Failures)
+
 
 * **Variável Alvo (`y`):**
     * `falha_maquina`: Variável binária (0 = Normal, 1 = Falha).
@@ -102,6 +118,8 @@ A etapa de preparação de dados focou em isolar apenas as variáveis que repres
 * **Pareto:** Dividimos os dados seguindo o princípio de Pareto, em treino (80%) e teste (20%) utilizando o parâmetro stratify=y.
 
 * **Reamostragem:** Aplicamos uma técnica de reamostragem (SMOTE ou Random Under Sampling) exclusivamente nos dados de treino para evitar o vazamento de dados (Data Leakage).
+
+![Correlação X](outputs/plots/matriz_correlação_X.png)
 
 ## Fase 5: Escalonamento de Variáveis (StandardScaler)
 
