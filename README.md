@@ -135,16 +135,16 @@ A matriz de correlação de $X$ pode ser vista abaixo.
     | **KNN**<br><img src="outputs/logs/knn_ajuste.png" width="600" alt="KNN"> |
 
 
-    * **Ponto de Overfitting:** O modelo apresentou sinais claros de overfitting no valor de **K=3**. Embora tenha alcançado a maior acurácia de teste (0.9158), a discrepância de ~6% entre o treino (0.9750) e o teste indica que o modelo estava excessivamente sensível aos ruídos específicos do conjunto de treinamento.
-    * **Estabilidade:** A configuração **K=7** garantiu a maior estabilidade. Embora a acurácia absoluta tenha sido marginalmente menor que em K=3, a diferença entre treino e teste diminuiu (0.9569 vs 0.9005), indicando que o modelo tornou-se mais robusto e com melhor capacidade de generalização para dados inéditos.
+    * **Ponto de Overfitting:** O modelo apresentou sinais claros de overfitting no valor de **K=3**. Embora tenha alcançado a maior acurácia de teste (0.9158), a discrepância de ~6% entre o treino e o teste indica que o modelo estava excessivamente sensível aos ruídos específicos do conjunto de treinamento.
+    * **Estabilidade:** A configuração **K=7** garantiu a maior estabilidade. Embora a acurácia absoluta tenha sido marginalmente menor que em K=3, a diferença entre treino e teste diminuiu, indicando que o modelo tornou-se mais robusto e com melhor capacidade de generalização para dados inéditos.
 
 * **Treinamento Tree:** Treinamos o modelo variando o parâmetro max_depth por no mínimo 3 limites (ex: 3, 5 e None) e registre a acurácia no treino e no teste.
 
     | **Tree**<br><img src="outputs/logs/tree_ajuste.png" width="600" alt="Tree"> |
 
 
-    * **Ponto de Overfitting:** O overfitting crítico foi identificado na configuração `Depth=None`. O modelo atingiu uma acurácia de 100% no conjunto de treino ("memorização"), criando regras excessivamente complexas que, embora mantenham uma boa performance no teste (0.9400), tornam o modelo vulnerável a ruídos em dados futuros. Também podemos identificar um possível underfitting em '[Depth=3] Acurácia Treino: 0.8562 | Acurácia Teste: 0.8553' talvez pelo fato de que o modelo é simples demais para capturar a estrutura real do problema.
-    * **Estabilidade:** A configuração **`Depth=5`** garantiu o melhor equilíbrio entre estabilidade e performance. Ela apresenta uma acurácia próxima entre treino e teste, demonstrando uma capacidade de aprendizado robusta e uma menor discrepância de generalização em comparação aos extremos de profundidade.
+    * **Ponto de Overfitting:** O overfitting crítico foi identificado na configuração `Depth=None`. O modelo atingiu uma acurácia muito grande no conjunto de treino ("memorização"), criando regras excessivamente complexas que, embora mantenham uma boa performance no teste, tornam o modelo vulnerável a ruídos em dados futuros. Também podemos identificar um possível underfitting em '[Depth=3]' talvez pelo fato de que o modelo é simples demais para capturar a estrutura real do problema.
+    * **Estabilidade:** A configuração **`Depth=5`** garantiu o melhor equilíbrio entre estabilidade e performance. Ela apresenta uma acurácia próxima entre treino e teste, demonstrando uma capacidade de aprendizado robusta e uma menor discrepância de generalização em comparação aos extremos de profundidade. E a acurácia de seu teste é superior às dos testes do knn.
 
 ## Fase 7: Avaliação da Acurácia e Veredito Final
 
