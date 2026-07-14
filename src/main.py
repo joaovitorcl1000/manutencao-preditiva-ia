@@ -740,9 +740,11 @@ def main():
         #---------------------------------------------------------
         #Fase 7: Avaliação da Acurácia e Veredito Final       
         #---------------------------------------------------------
+        #No README justificamos essa escolha para os melhores.
         melhor_k  = 3
         melhor_depth = 5
 
+        #Definimos a acurácia final como acurácia nos testes, onde o modelo não teve contato durante o treino
         acc_knn = model_evaluation(
             melhor_knn,
             X_test_knn,
