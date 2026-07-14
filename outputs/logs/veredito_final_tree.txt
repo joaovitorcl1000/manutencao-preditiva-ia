@@ -1,0 +1,23 @@
+
+============================================================
+VEREDITO FINAL: ÁRVORE (DEPTH=5)
+============================================================
+
+[RESULTADO] Acurácia final: 0.9060
+
+[INFO] Classification Report:
+              precision    recall  f1-score   support
+
+           0       0.99      0.91      0.95      1932
+           1       0.25      0.87      0.39        68
+
+    accuracy                           0.91      2000
+   macro avg       0.62      0.89      0.67      2000
+weighted avg       0.97      0.91      0.93      2000
+
+
+[INFO] Matriz de Confusão:
+[[1753  179]
+ [   9   59]]
+============================================================
+

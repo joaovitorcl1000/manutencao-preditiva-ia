@@ -119,7 +119,7 @@ A matriz de correlação de $X$ pode ser vista abaixo.
 
 * **Reamostragem:** Aplicamos uma técnica de reamostragem (SMOTE ou Random Under Sampling) exclusivamente nos dados de treino para evitar o vazamento de dados (Data Leakage).
 
-![Correlação X](outputs/plots/matriz_correlação_X.png)
+![Correlação X](outputs/plots/matriz_correlação_X_all.png)
 
 ## Fase 5: Escalonamento de Variáveis (StandardScaler)
 
@@ -131,73 +131,47 @@ A matriz de correlação de $X$ pode ser vista abaixo.
 ## Fase 6: Ajuste de Parâmetros e Combate ao Overfitting
 
 * **Treinamento KNN:** Treinamos o modelo variando o parâmetro n_neighbors (K) por no mínimo 3 valores ímpares (ex: K = 3, 5, 7) e registre a acurácia no treino e no teste.
-    ```
-    [INFO] Iniciando ajuste de hiperparâmetros (KNN)...
-    [K=3] Acurácia Treino: 0.9750 | Acurácia Teste: 0.9158
-    [K=5] Acurácia Treino: 0.9657 | Acurácia Teste: 0.9021
-    [K=7] Acurácia Treino: 0.9569 | Acurácia Teste: 0.9005
-    ```
+    
+    | **KNN**<br><img src="outputs/logs/knn_ajuste.png" width="600" alt="KNN"> |
+
+
     * **Ponto de Overfitting:** O modelo apresentou sinais claros de overfitting no valor de **K=3**. Embora tenha alcançado a maior acurácia de teste (0.9158), a discrepância de ~6% entre o treino (0.9750) e o teste indica que o modelo estava excessivamente sensível aos ruídos específicos do conjunto de treinamento.
     * **Estabilidade:** A configuração **K=7** garantiu a maior estabilidade. Embora a acurácia absoluta tenha sido marginalmente menor que em K=3, a diferença entre treino e teste diminuiu (0.9569 vs 0.9005), indicando que o modelo tornou-se mais robusto e com melhor capacidade de generalização para dados inéditos.
 
 * **Treinamento Tree:** Treinamos o modelo variando o parâmetro max_depth por no mínimo 3 limites (ex: 3, 5 e None) e registre a acurácia no treino e no teste.
-    ```
-    [INFO] Iniciando ajuste de hiperparâmetros (Árvore de Decisão)...
-    [Depth=3] Acurácia Treino: 0.8562 | Acurácia Teste: 0.8553
-    [Depth=5] Acurácia Treino: 0.9073 | Acurácia Teste: 0.8716
-    [Depth=None] Acurácia Treino: 1.0000 | Acurácia Teste: 0.9400
-    ```
+
+    | **Tree**<br><img src="outputs/logs/tree_ajuste.png" width="600" alt="Tree"> |
+
+
     * **Ponto de Overfitting:** O overfitting crítico foi identificado na configuração `Depth=None`. O modelo atingiu uma acurácia de 100% no conjunto de treino ("memorização"), criando regras excessivamente complexas que, embora mantenham uma boa performance no teste (0.9400), tornam o modelo vulnerável a ruídos em dados futuros. Também podemos identificar um possível underfitting em '[Depth=3] Acurácia Treino: 0.8562 | Acurácia Teste: 0.8553' talvez pelo fato de que o modelo é simples demais para capturar a estrutura real do problema.
-    * **Estabilidade:** A configuração **`Depth=5`** garantiu o melhor equilíbrio entre estabilidade e performance. Ela apresenta uma acurácia próxima entre treino (0.9073) e teste (0.8716), demonstrando uma capacidade de aprendizado robusta e uma menor discrepância de generalização em comparação aos extremos de profundidade.
+    * **Estabilidade:** A configuração **`Depth=5`** garantiu o melhor equilíbrio entre estabilidade e performance. Ela apresenta uma acurácia próxima entre treino e teste, demonstrando uma capacidade de aprendizado robusta e uma menor discrepância de generalização em comparação aos extremos de profundidade.
 
 ## Fase 7: Avaliação da Acurácia e Veredito Final
 
 * **Acurácia:** Calculamos a acurácia final do melhor KNN e da melhor árvore de decisão utilizando os dados de teste.
     * A avaliação final comparou o modelo KNN (K=3) e a Árvore de Decisão (Depth=5) utilizando o *Classification Report* e a Matriz de Confusão para determinar a eficácia na detecção de falhas industriais.
 
-    ```
-    ============================================================
-        VEREDITO FINAL: KNN (K=3)
-    ============================================================
-    [INFO] Classification Report:
-                precision    recall  f1-score   support
-            0       0.99      0.92      0.95      1836
-            1       0.26      0.80      0.39        64
+    | **VF**<br><img src="outputs/logs/veredito_final_knn.png" width="600" alt="VF"> |
+    | **VF**<br><img src="outputs/logs/veredito_final_tree.png" width="600" alt="VF"> |
 
-        accuracy                           0.92      1900
-    macro avg       0.62      0.86      0.67      1900
-    weighted avg       0.97      0.92      0.94      1900
-
-    [INFO] Matriz de Confusão:
-    [[1689  147]
-    [  13   51]]
-    ============================================================
-
-    ============================================================
-        VEREDITO FINAL: ÁRVORE (DEPTH=5)
-    ============================================================
-    [INFO] Classification Report:
-                precision    recall  f1-score   support
-            0       1.00      0.87      0.93      1836
-            1       0.20      0.97      0.34        64
-
-        accuracy                           0.87      1900
-    macro avg       0.60      0.92      0.63      1900
-    weighted avg       0.97      0.87      0.91      1900
-
-    [INFO] Matriz de Confusão:
-    [[1594  242]
-    [   2   62]]
-    ============================================================
-    ```
 
     * ### Comparação de Taxas de Acerto
-        * **Acurácia Global:** O KNN (0.92) apresenta um desempenho superior à Árvore de Decisão (0.87) na métrica de acurácia global. Contudo, devido ao desbalanceamento da base de dados, esta métrica não deve ser o critério principal, pois é inflada pelo alto desempenho na classe majoritária (operação normal).
-        * **Recall (Capacidade de Detecção):** A Árvore de Decisão (Recall 0.97) é drasticamente superior ao KNN (Recall 0.80) na detecção da classe de falha (classe 1). Enquanto o KNN permitiu a ocorrência de 13 falhas não detectadas, a Árvore reduziu esse número para apenas 2.
+        * **Acurácia Global:** O KNN apresenta um desempenho superior à Árvore de Decisão na métrica de acurácia global. Contudo, devido ao desbalanceamento da base de dados, esta métrica não deve ser o critério principal, pois é inflada pelo alto desempenho na classe majoritária (operação normal).
+        * **Recall (Capacidade de Detecção):** A Árvore de Decisão (Recall maior) é drasticamente superior ao KNN na detecção da classe de falha (classe 1). Enquanto o KNN permitiu a ocorrência de 13 falhas não detectadas, a Árvore reduziu esse número para apenas 2.
 
 ## Conclusão
 
-O modelo selecionado para adoção pela empresa é a **Árvore de Decisão (Depth=5)**. Em sistemas de manutenção preditiva, o objetivo primordial é a minimização de **Falsos Negativos** (falhas catastróficas não detectadas). Embora a Árvore apresente uma precisão menor (gerando mais alarmes falsos, ou Falsos Positivos), ela garante uma cobertura de detecção de falhas de 97%. Para a empresa, o custo operacional de uma checagem preventiva baseada em um alarme falso é infinitamente menor do que o custo de uma falha não prevista que comprometa a integridade dos ativos industriais.
+O modelo selecionado para adoção pela empresa é a **Árvore de Decisão (Depth=5)**. Em sistemas de manutenção preditiva, o objetivo primordial é a minimização de **Falsos Negativos** (falhas catastróficas não detectadas). Embora a Árvore apresente uma precisão menor (gerando mais alarmes falsos, ou Falsos Positivos), ela garante uma cobertura de detecção de falhas de 90%. Para a empresa, o custo operacional de uma checagem preventiva baseada em um alarme falso é infinitamente menor do que o custo de uma falha não prevista que comprometa a integridade dos ativos industriais.
+
+## Link do Vídeo
+
+https://drive.google.com/drive/folders/1GdKD_oNcOEA5J34irkN_qYoz9MHsTf2X?usp=drive_link
+
+## Autor
+
+João Vitor Costa Lovato
+
+GitHub: https://github.com/joaovitorcl1000/manutencao-preditiva-ia
 
 ## Melhorias Futuras
 
@@ -211,64 +185,8 @@ O modelo selecionado para adoção pela empresa é a **Árvore de Decisão (Dept
 
 ### Inspeção dos dados
 
-```
-[ESTRUTURA] Dimensões do Dataset (Linhas, Colunas): (10000, 14)
-[ESTRUTURA] Lista de colunas: ['udi', 'id_produto', 'tipo', 'temperatura_ar_k', 'temperatura_processo_k', 'velocidade_rotacao_rpm', 'torque_nm', 'desgaste_ferramenta_min', 'falha_maquina', 'falha_twf', 'falha_hdf', 'falha_pwf', 'falha_osf', 'falha_rnf']
+| **ID**<br><img src="outputs/logs/inspecionar_dados.png" width="600" alt="ID"> |
 
---- TIPOS DE DADOS DAS VARIÁVEIS ---
-udi                          int64
-id_produto                  object
-tipo                        object
-temperatura_ar_k           float64
-temperatura_processo_k     float64
-velocidade_rotacao_rpm     float64
-torque_nm                  float64
-desgaste_ferramenta_min      int64
-falha_maquina                int64
-falha_twf                    int64
-falha_hdf                    int64
-falha_pwf                    int64
-falha_osf                    int64
-falha_rnf                    int64
-dtype: object
-
---- VALORES NULOS DETECTADOS POR COLUNA ---
-udi                          0
-id_produto                   0
-tipo                         0
-temperatura_ar_k           500
-temperatura_processo_k     500
-velocidade_rotacao_rpm     500
-torque_nm                  500
-desgaste_ferramenta_min      0
-falha_maquina                0
-falha_twf                    0
-falha_hdf                    0
-falha_pwf                    0
-falha_osf                    0
-falha_rnf                    0
-dtype: int64
-
---- VISUALIZAÇÃO DOS PRIMEIROS REGISTROS (HEAD) ---
-   udi id_produto tipo  temperatura_ar_k  temperatura_processo_k  velocidade_rotacao_rpm  torque_nm  desgaste_ferramenta_min  falha_maquina  falha_twf  falha_hdf  falha_pwf  falha_osf  falha_rnf
-0    1     M14860    M             298.1                   308.6                  1551.0       42.8                        0              0          0          0          0          0          0
-1    2     L47181    L             298.2                   308.7                  1408.0       46.3                        3              0          0          0          0          0          0
-2    3     L47182    L             298.1                   308.5                  1498.0       49.4                        5              0          0          0          0          0          0
-3    4     L47183    L               NaN                     NaN                     NaN        NaN                        7              0          0          0          0          0          0
-4    5     L47184    L             298.2                   308.7                  1408.0       40.0                        9              0          0          0          0          0          0
-
---- RESUME ESTATÍSTICO DESCRITIVO (.describe()) ---
-               udi  temperatura_ar_k  temperatura_processo_k  velocidade_rotacao_rpm    torque_nm  desgaste_ferramenta_min  falha_maquina     falha_twf     falha_hdf     falha_pwf     falha_osf    falha_rnf
-count  10000.00000       9500.000000             9500.000000             9500.000000  9500.000000             10000.000000   10000.000000  10000.000000  10000.000000  10000.000000  10000.000000  10000.00000
-mean    5000.50000        300.002158              310.000895             1539.245263    39.974168               107.951000       0.033900      0.004600      0.011500      0.009500      0.009800      0.00190
-std     2886.89568          2.001689                1.486432              180.273589     9.995453                63.654147       0.180981      0.067671      0.106625      0.097009      0.098514      0.04355
-min        1.00000        295.300000              305.700000             1168.000000     3.800000                 0.000000       0.000000      0.000000      0.000000      0.000000      0.000000      0.00000
-25%     2500.75000        298.300000              308.800000             1423.000000    33.100000                53.000000       0.000000      0.000000      0.000000      0.000000      0.000000      0.00000
-50%     5000.50000        300.100000              310.100000             1504.000000    40.100000               108.000000       0.000000      0.000000      0.000000      0.000000      0.000000      0.00000
-75%     7500.25000        301.500000              311.100000             1613.000000    46.700000               162.000000       0.000000      0.000000      0.000000      0.000000      0.000000      0.00000
-max    10000.00000        304.500000              313.800000             2886.000000    76.600000               253.000000       1.000000      1.000000      1.000000      1.000000      1.000000      1.00000
-============================================================
-```
 
 ### Gráficos exploratórios
 

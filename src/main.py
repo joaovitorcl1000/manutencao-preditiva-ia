@@ -10,6 +10,7 @@ Fase 7: Avaliação da Acurácia e Veredito Final
 """
 
 import os
+import sys
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -36,6 +37,16 @@ def inspecionar_dados(df):
     Fase 1 (Tópico 1) - Realiza a inspeção estrutural e exibe 
     o resumo estatístico descritivo inicial da base de dados.
     """
+
+    # Vamos salvar os logs para o README
+    log_dir = "../outputs/logs"
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
+
+    log_file = open(f"{log_dir}/inspecionar_dados.txt", "w")
+    original_stdout = sys.stdout
+    sys.stdout = log_file
+
     print("\n" + "=" * 60)
     print("=== FASE 1: INSPEÇÃO DOS DADOS ===")
     print("=" * 60)
@@ -60,6 +71,10 @@ def inspecionar_dados(df):
     print("\n--- RESUME ESTATÍSTICO DESCRITIVO (.describe()) ---")
     print(df.describe().to_string())
     print("=" * 60 + "\n")
+
+    sys.stdout = original_stdout
+    log_file.close()
+    print("[INFO] Log do inspeção salvo com sucesso em outputs/logs/inspecionar_dados.txt")
 
 #-------------------------------------------------------------------------------
 # Gráficos exploratórios
@@ -211,17 +226,32 @@ def limpar_dados(df_raw):
     for col in ["id_produto", "tipo"]:
         df[col] = df[col].astype(str).str.strip().str.upper()
 
-    # 3. Filtro, pois grandezas não podem ser negativas ou zero absolutas
-    n_antes_inv = len(df)
-    df = df[(df["velocidade_rotacao_rpm"] > 0) & 
-            (df["temperatura_ar_k"] > 0) & 
-            (df["temperatura_processo_k"] > 0) & 
-            (df["torque_nm"] > 0)]
+    # 3. valores negativos ou iguais a zero são removidos, mas valores ausentes continuam para serem imputados na próxima fase
+    colunas_fisicas = [
+        "velocidade_rotacao_rpm",
+        "temperatura_ar_k",
+        "temperatura_processo_k",
+        "torque_nm",
+    ]
 
-    relatorio["anomalias_fisicas_removidas"] = n_antes_inv - len(df)
+    mascara_invalida = (
+        df[colunas_fisicas].notna()
+        & df[colunas_fisicas].le(0)
+    ).any(axis=1)
+
+    n_antes_inv = len(df)
+    df = df.loc[~mascara_invalida].copy()
+
+    relatorio["anomalias_fisicas_removidas"] = (
+        n_antes_inv - len(df)
+    )    
+
 
     # 4. Garantimos tipos de dados numéricos corretos
-    df["desgaste_ferramenta_min"] = df["desgaste_ferramenta_min"].astype(int)
+    df["desgaste_ferramenta_min"] = pd.to_numeric(
+        df["desgaste_ferramenta_min"],
+        errors="coerce",
+    )
 
     # Métricas Finais do Relatório
     n_final = len(df)
@@ -254,7 +284,7 @@ def imputar_dados(df_limpo):
     # - RPM e Temperaturas: Mediana (Assimetria/Robustez)
     
     colunas_media = ["torque_nm"]
-    colunas_mediana = ["velocidade_rotacao_rpm", "temperatura_ar_k", "temperatura_processo_k"]
+    colunas_mediana = ["velocidade_rotacao_rpm", "temperatura_ar_k", "temperatura_processo_k", "desgaste_ferramenta_min"]
 
     for col in colunas_media:
         if df[col].isnull().sum() > 0:
@@ -330,7 +360,7 @@ def criar_features(df_imputado):
 
     df["potencia_estimada"] = df["velocidade_rotacao_rpm"] * df["torque_nm"]
 
-    print("[INFO] Novas features 'taxa_desgaste_processo' 'flag_sobrecarga_termica' e 'potencia_estimada' criadas.")
+    print("[INFO] Novas features 'ratio_temp' 'flag_sobrecarga_termica' e 'potencia_estimada' criadas.")
     
     caminho_csv = "../outputs/dados_enriquecidos.csv"
     df.to_csv(caminho_csv, index=False)
@@ -495,6 +525,15 @@ def preparar_escalonamento(X_train, X_test):
 # --------------------------------------------------------------------------
 
 def treinar_knn_ajuste(X_train, y_train, X_test, y_test, valores_k=[3, 5, 7]):
+    # Vamos salvar os logs para o README
+    log_dir = "../outputs/logs"
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
+
+    log_file = open(f"{log_dir}/knn_ajuste.txt", "w")
+    original_stdout = sys.stdout
+    sys.stdout = log_file
+
     print(f"\n[INFO] Iniciando ajuste de hiperparâmetros (KNN)...")
     resultados = {}
     
@@ -512,7 +551,11 @@ def treinar_knn_ajuste(X_train, y_train, X_test, y_test, valores_k=[3, 5, 7]):
         
         resultados[k] = {"train": acc_train, "test": acc_test}
         print(f"  [K={k}] Acurácia Treino: {acc_train:.4f} | Acurácia Teste: {acc_test:.4f}")
-        
+
+    sys.stdout = original_stdout
+    log_file.close()
+    print("[INFO] Log do KNN salvo com sucesso em outputs/logs/knn_ajuste.txt")
+    
     return resultados
 
 # --------------------------------------------------------------------------
@@ -520,6 +563,15 @@ def treinar_knn_ajuste(X_train, y_train, X_test, y_test, valores_k=[3, 5, 7]):
 # --------------------------------------------------------------------------
 
 def treinar_arvore_ajuste(X_train, y_train, X_test, y_test, profundidades=[3, 5, None]):
+    # Vamos salvar os logs para o README
+    log_dir = "../outputs/logs"
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
+
+    log_file = open(f"{log_dir}/tree_ajuste.txt", "w")
+    original_stdout = sys.stdout
+    sys.stdout = log_file
+
     print(f"\n[INFO] Iniciando ajuste de hiperparâmetros (Árvore de Decisão)...")
     resultados = {}
     
@@ -536,28 +588,78 @@ def treinar_arvore_ajuste(X_train, y_train, X_test, y_test, profundidades=[3, 5,
         resultados[depth] = {"train": acc_train, "test": acc_test}
         nome_depth = "None" if depth is None else str(depth)
         print(f"  [Depth={nome_depth}] Acurácia Treino: {acc_train:.4f} | Acurácia Teste: {acc_test:.4f}")
+
+    sys.stdout = original_stdout
+    log_file.close()
+    print("[INFO] Log do Tree salvo com sucesso em outputs/logs/tree_ajuste.txt")    
         
     return resultados
 
 # ==============================================================================
 # FASE 7: AVALIAÇÃO DA ACURÁCIA E VEREDITO FINAL
 # ==============================================================================
-def model_evaluation(modelo, X_test, y_test, nome_modelo):
+def model_evaluation(modelo, X_test, y_test, nome_modelo, label):
     """Fase 7 - Avaliação detalhada do melhor modelo."""
-    print(f"\n" + "="*60)
-    print(f"      VEREDITO FINAL: {nome_modelo.upper()}")
-    print("="*60)
-    
+
+    # Vamos salvar os logs para o README
+    log_dir = "../outputs/logs"
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
+
+    log_file = open(f"{log_dir}/veredito_final_" + label + ".txt", "w")
+    original_stdout = sys.stdout
+    sys.stdout = log_file
+
+    print("\n" + "=" * 60)
+    print(f"VEREDITO FINAL: {nome_modelo.upper()}")
+    print("=" * 60)
+
     y_pred = modelo.predict(X_test)
-    
-    # Relatório de Classificação
+    acuracia = accuracy_score(y_test, y_pred)
+
+    print(f"\n[RESULTADO] Acurácia final: {acuracia:.4f}")
+
     print("\n[INFO] Classification Report:")
     print(classification_report(y_test, y_pred))
-    
-    # Matriz de Confusão
+
     print("\n[INFO] Matriz de Confusão:")
     print(confusion_matrix(y_test, y_pred))
-    print("="*60 + "\n")
+
+    print("=" * 60 + "\n")
+    
+    sys.stdout = original_stdout
+    log_file.close()
+    print("[INFO] Log do veredito_final salvo com sucesso em outputs/logs/veredito_final.txt")
+
+    return acuracia
+
+# Para que os logs apareçam no README, essa função os transforma em imagens
+
+def log_para_imagem_treino(arquivo_log):
+    caminho_log = f"../outputs/logs/{arquivo_log}"
+    
+    if not os.path.exists(caminho_log):
+        print(f"[ERRO] Arquivo não encontrado: {caminho_log}")
+        return
+
+    # Lê o conteúdo completo do arquivo
+    with open(caminho_log, "r") as f:
+        conteudo = f.read()
+
+    # Cria uma figura para exibir o texto
+    plt.figure(figsize=(10, 8))
+    # Exibe o texto de forma literal (usando fonte monoespaçada)
+    plt.text(0.02, 0.98, conteudo, fontsize=10, family='monospace', 
+             verticalalignment='top', wrap=True)
+    
+    plt.axis('off') # Remove eixos para parecer um print
+    
+    # Salva na pasta de plots
+    caminho_plot = f"../outputs/logs/{arquivo_log.replace('.txt', '.png')}"
+    os.makedirs("../outputs/logs", exist_ok=True)
+    plt.savefig(caminho_plot, bbox_inches='tight', dpi=150)
+    plt.close()
+    print(f"[INFO] Print gerado: {caminho_plot}")
 
 # ==============================================================================
 # MAIN
@@ -638,8 +740,47 @@ def main():
         #---------------------------------------------------------
         #Fase 7: Avaliação da Acurácia e Veredito Final       
         #---------------------------------------------------------
-        model_evaluation(melhor_knn, X_test_knn, y_test, "KNN (K=3)")
-        model_evaluation(melhor_arvore, X_test_tree, y_test, "Árvore (Depth=5)")
+        melhor_k  = 3
+        melhor_depth = 5
+
+        acc_knn = model_evaluation(
+            melhor_knn,
+            X_test_knn,
+            y_test,
+            f"KNN (K={melhor_k})",
+            label="knn",
+        )
+
+        acc_arvore = model_evaluation(
+            melhor_arvore,
+            X_test_tree,
+            y_test,
+            f"Árvore (Depth={melhor_depth})",
+            label="tree",
+        )
+
+        print("\n" + "=" * 60)
+        print("COMPARAÇÃO FINAL DOS MODELOS")
+        print("=" * 60)
+
+        print(f"Acurácia do KNN:    {acc_knn:.4f}")
+        print(f"Acurácia da Árvore: {acc_arvore:.4f}")
+
+        if acc_knn > acc_arvore:
+            modelo_final = "KNN"
+        elif acc_arvore > acc_knn:
+            modelo_final = "Árvore de Decisão"
+        else:
+            modelo_final = "Empate entre KNN e Árvore de Decisão"
+
+        print(f"\n[VEREDITO] Modelo indicado: {modelo_final}")
+
+        # Para que os logs apareçam no README, transformamos eles em imagens
+        log_para_imagem_treino("knn_ajuste.txt")
+        log_para_imagem_treino("tree_ajuste.txt")
+        log_para_imagem_treino("inspecionar_dados.txt")
+        log_para_imagem_treino("veredito_final_knn.txt")
+        log_para_imagem_treino("veredito_final_tree.txt")
 
     except FileNotFoundError:
         print(f"[ERRO] O arquivo não foi encontrado.")

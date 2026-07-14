@@ -1,0 +1,5 @@
+
+[INFO] Iniciando ajuste de hiperparâmetros (KNN)...
+  [K=3] Acurácia Treino: 0.9335 | Acurácia Teste: 0.8755
+  [K=5] Acurácia Treino: 0.9138 | Acurácia Teste: 0.8720
+  [K=7] Acurácia Treino: 0.9000 | Acurácia Teste: 0.8655

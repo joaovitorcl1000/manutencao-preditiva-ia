@@ -1,0 +1,5 @@
+
+[INFO] Iniciando ajuste de hiperparâmetros (Árvore de Decisão)...
+  [Depth=3] Acurácia Treino: 0.8528 | Acurácia Teste: 0.8995
+  [Depth=5] Acurácia Treino: 0.8936 | Acurácia Teste: 0.9060
+  [Depth=None] Acurácia Treino: 0.9896 | Acurácia Teste: 0.9365
